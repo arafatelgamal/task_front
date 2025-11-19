@@ -129,6 +129,40 @@ export class WorkflowService {
     return user;
   }
 
+  setAuthenticatedAdmin(user: {
+    id: number;
+    fullName?: string;
+    email?: string;
+    phoneNumber?: string;
+    role?: string;
+    permissions?: string[];
+    joinedDate?: string | Date;
+    isActive?: boolean;
+  }): UserAccount {
+    const normalizedRole: UserRole = user.role === 'technician' || user.role === 'employee' ? user.role : 'manager';
+
+    const mappedUser: UserAccount = {
+      id: user.id,
+      name: user.fullName || user.email || `Admin ${user.id}`,
+      phoneNumber: user.phoneNumber || '',
+      email: user.email,
+      role: normalizedRole,
+      permissions: user.permissions ?? [],
+      status: user.isActive === false ? 'Suspended' : 'Active',
+      password: '',
+      createdAt: user.joinedDate ? new Date(user.joinedDate) : new Date(),
+    };
+
+    this.currentUser.set(mappedUser);
+
+    if (!this.users().some((u) => u.id === mappedUser.id)) {
+      this.users.set([...this.users(), mappedUser]);
+    }
+
+    this.addNotification(mappedUser.role, `Signed in as ${mappedUser.name}.`, undefined);
+    return mappedUser;
+  }
+
   logout() {
     this.currentUser.set(null);
   }

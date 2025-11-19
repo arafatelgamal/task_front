@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AssetRequest, UserRole } from './models';
-import { LoginCredentials, LoginScreenComponent } from './login/login-screen.component';
+import { LoginAdminResponse, LoginCredentials, LoginScreenComponent } from './login/login-screen.component';
 import { WorkflowService } from './workflow.service';
 
 type AppView = 'dashboard' | 'requests' | 'users' | 'notifications';
@@ -21,7 +21,7 @@ type RequestFilters = { status: AssetRequest['status'] | 'all'; onlyMine: boolea
 export class AppComponent {
   title = 'Task';
 
-  loginForm = signal<LoginCredentials>({ phoneNumber: '+966500000100', password: 'Manager@12345' });
+  loginForm = signal<LoginCredentials>({ phoneNumber: '', password: '' });
   newRequest = signal<{ assetName: string; assetPhoto?: string; assetPhotoName?: string; description?: string }>(
     { assetName: '', assetPhoto: '', assetPhotoName: '', description: '' }
   );
@@ -82,19 +82,15 @@ export class AppComponent {
     };
   });
 
-  login(credentials: LoginCredentials) {
-    this.errorMessage.set('');
-    try {
-      const user = this.workflow.login(credentials.phoneNumber, credentials.password);
-      this.successMessage.set(`Welcome ${user.name}. Redirecting to your dashboard.`);
-      this.activeView.set('dashboard');
-    } catch (err: any) {
-      this.errorMessage.set(err.message ?? 'Login failed');
-    }
-  }
-
   logout() {
     this.workflow.logout();
+    this.activeView.set('dashboard');
+  }
+
+  handleAuthenticated(response: LoginAdminResponse) {
+    this.errorMessage.set('');
+    const user = this.workflow.setAuthenticatedAdmin(response.user);
+    this.successMessage.set(`Welcome ${user.name}. Redirecting to your dashboard.`);
     this.activeView.set('dashboard');
   }
 

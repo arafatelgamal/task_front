@@ -3,10 +3,8 @@
   <app-login-screen
     *ngIf="!currentUser()"
     [credentials]="loginForm()"
-    [error]="errorMessage()"
-    [success]="successMessage()"
     (credentialsChange)="handleCredentialsChange($event)"
-    (login)="login($event)"
+    (authenticated)="handleAuthenticated($event)"
     (forgotPassword)="handleForgotPassword()"
   />
 

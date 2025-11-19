@@ -13,15 +13,15 @@
         <label for="phone">Phone number</label>
         <div class="input-wrap">
           <span class="prefix">+966</span>
-          <input
-            id="phone"
-            type="tel"
-            name="phone"
-            [ngModel]="credentials.phoneNumber"
-            (ngModelChange)="updateField('phoneNumber', $event)"
-            placeholder="500000100"
-            required
-          />
+            <input
+              id="phone"
+              type="tel"
+              name="phone"
+              [ngModel]="credentials.phoneNumber"
+              (ngModelChange)="updateField('phoneNumber', $event)"
+              placeholder="Enter your phone number"
+              required
+            />
         </div>
       </div>
 
@@ -29,20 +29,20 @@
         <label for="password">Password</label>
         <div class="input-wrap">
           <span class="prefix">•••</span>
-          <input
-            id="password"
-            type="password"
-            name="password"
-            [ngModel]="credentials.password"
-            (ngModelChange)="updateField('password', $event)"
-            placeholder="Manager@12345"
-            required
-          />
+            <input
+              id="password"
+              type="password"
+              name="password"
+              [ngModel]="credentials.password"
+              (ngModelChange)="updateField('password', $event)"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+          <button type="button" class="link" (click)="forgotPassword.emit()">Forgot password?</button>
         </div>
-        <button type="button" class="link" (click)="forgotPassword.emit()">Forgot password?</button>
-      </div>
 
-      <button class="primary" type="submit">Login</button>
+      <button class="primary" type="submit" [disabled]="loading">{{ loading ? 'Signing in...' : 'Login' }}</button>
 
       <div class="messages" *ngIf="error || success">
         <p class="error" *ngIf="error">{{ error }}</p>
