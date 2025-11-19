@@ -11,8 +11,17 @@
     <form class="form login-form" (ngSubmit)="submit()" autocomplete="on">
       <div class="field">
         <label for="phone">Phone number</label>
-        <div class="input-wrap">
-          <span class="prefix">+966</span>
+        <div class="input-wrap phone-input">
+          <input
+            id="countryCode"
+            class="country-code"
+            type="tel" style="width: 80px;"
+            name="countryCode"
+            [ngModel]="credentials.countryCode"
+            (ngModelChange)="updateField('countryCode', $event)"
+            placeholder="+966"
+            required
+          />
             <input
               id="phone"
               type="tel"
@@ -39,7 +48,6 @@
               required
             />
           </div>
-          <button type="button" class="link" (click)="forgotPassword.emit()">Forgot password?</button>
         </div>
 
       <button class="primary" type="submit" [disabled]="loading">{{ loading ? 'Signing in...' : 'Login' }}</button>

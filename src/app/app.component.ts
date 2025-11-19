@@ -21,7 +21,7 @@ type RequestFilters = { status: AssetRequest['status'] | 'all'; onlyMine: boolea
 export class AppComponent {
   title = 'Task';
 
-  loginForm = signal<LoginCredentials>({ phoneNumber: '', password: '' });
+  loginForm = signal<LoginCredentials>({ countryCode: '+966', phoneNumber: '', password: '' });
   newRequest = signal<{ assetName: string; assetPhoto?: string; assetPhotoName?: string; description?: string }>(
     { assetName: '', assetPhoto: '', assetPhotoName: '', description: '' }
   );
@@ -101,11 +101,6 @@ export class AppComponent {
 
   handleCredentialsChange(credentials: LoginCredentials) {
     this.loginForm.set(credentials);
-  }
-
-  handleForgotPassword() {
-    this.errorMessage.set('');
-    this.successMessage.set('Use the admin portal to reset your password, then authenticate via POST /api/admin/auth/login.');
   }
 
   updateNewRequest(field: 'assetName' | 'description', value: string) {

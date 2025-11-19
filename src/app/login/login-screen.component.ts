@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 var baseUrl = 'https://localhost:5550';
 
 export interface LoginCredentials {
+  countryCode: string;
   phoneNumber: string;
   password: string;
 }
@@ -44,7 +45,6 @@ export class LoginScreenComponent {
 
   @Output() credentialsChange = new EventEmitter<LoginCredentials>();
   @Output() authenticated = new EventEmitter<LoginAdminResponse>();
-  @Output() forgotPassword = new EventEmitter<void>();
 
   loading = false;
 
@@ -59,9 +59,11 @@ export class LoginScreenComponent {
     this.success = '';
     this.loading = true;
 
+    const phoneWithCountry = `${(this.credentials.countryCode || '').trim()}${(this.credentials.phoneNumber || '').trim()}`;
+
     this.http
       .post<ApiResponse<LoginAdminResponse>>(baseUrl+'/api/admin/auth/login', {
-        phoneNumber: this.credentials.phoneNumber,
+        phoneNumber: phoneWithCountry,
         password: this.credentials.password,
       })
       .subscribe({
