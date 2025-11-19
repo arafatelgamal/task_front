@@ -3,6 +3,8 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
+var baseUrl = 'https://localhost:5550';
+
 export interface LoginCredentials {
   phoneNumber: string;
   password: string;
@@ -58,7 +60,7 @@ export class LoginScreenComponent {
     this.loading = true;
 
     this.http
-      .post<ApiResponse<LoginAdminResponse>>('/api/admin/auth/login', {
+      .post<ApiResponse<LoginAdminResponse>>(baseUrl+'/api/admin/auth/login', {
         phoneNumber: this.credentials.phoneNumber,
         password: this.credentials.password,
       })
