@@ -5,13 +5,7 @@
       <h1>Welcome back to Asset Desk</h1>
       <p class="muted">
         Use your phone number and password to authenticate with
-        <strong>POST /api/admin/auth/login</strong> and jump into the console.
       </p>
-      <div class="quick-roles">
-        <button type="button" (click)="quickFill({ phoneNumber: '+966500000100', password: 'Manager@12345' })">Manager</button>
-        <button type="button" (click)="quickFill({ phoneNumber: '+966500000000', password: 'Employee@12345' })">Employee</button>
-        <button type="button" (click)="quickFill({ phoneNumber: '+966500000001', password: 'Tech@12345' })">Technician</button>
-      </div>
     </div>
 
     <form class="form login-form" (ngSubmit)="submit()" autocomplete="on">
@@ -55,10 +49,6 @@
         <p class="success" *ngIf="success">{{ success }}</p>
       </div>
 
-      <p class="muted">
-        Need API docs? Check <code>POST /api/admin/auth/login</code> and
-        <code>GET /api/admin/account/profile</code> after signing in.
-      </p>
     </form>
   </div>
 </section>
