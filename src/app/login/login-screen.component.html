@@ -1,0 +1,54 @@
+<section class="login-hero">
+  <div class="login-card">
+    <div class="login-body">
+      <p class="eyebrow">Admin access</p>
+      <h1>Welcome back to Asset Desk</h1>
+      <p class="muted">
+        Use your phone number and password to authenticate with
+      </p>
+    </div>
+
+    <form class="form login-form" (ngSubmit)="submit()" autocomplete="on">
+      <div class="field">
+        <label for="phone">Phone number</label>
+        <div class="input-wrap">
+          <span class="prefix">+966</span>
+          <input
+            id="phone"
+            type="tel"
+            name="phone"
+            [ngModel]="credentials.phoneNumber"
+            (ngModelChange)="updateField('phoneNumber', $event)"
+            placeholder="500000100"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <span class="prefix">•••</span>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            [ngModel]="credentials.password"
+            (ngModelChange)="updateField('password', $event)"
+            placeholder="Manager@12345"
+            required
+          />
+        </div>
+        <button type="button" class="link" (click)="forgotPassword.emit()">Forgot password?</button>
+      </div>
+
+      <button class="primary" type="submit">Login</button>
+
+      <div class="messages" *ngIf="error || success">
+        <p class="error" *ngIf="error">{{ error }}</p>
+        <p class="success" *ngIf="success">{{ success }}</p>
+      </div>
+
+    </form>
+  </div>
+</section>

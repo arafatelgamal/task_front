@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AssetRequest, UserRole } from './models';
+import { LoginCredentials, LoginScreenComponent } from './login/login-screen.component';
 import { WorkflowService } from './workflow.service';
 
 type AppView = 'dashboard' | 'requests' | 'users' | 'notifications';
@@ -13,14 +14,14 @@ type RequestFilters = { status: AssetRequest['status'] | 'all'; onlyMine: boolea
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LoginScreenComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
 export class AppComponent {
   title = 'Task';
 
-  loginForm = signal({ phoneNumber: '+966500000100', password: 'Manager@12345' });
+  loginForm = signal<LoginCredentials>({ phoneNumber: '+966500000100', password: 'Manager@12345' });
   newRequest = signal<{ assetName: string; assetPhoto?: string; assetPhotoName?: string; description?: string }>(
     { assetName: '', assetPhoto: '', assetPhotoName: '', description: '' }
   );
@@ -81,10 +82,10 @@ export class AppComponent {
     };
   });
 
-  login() {
+  login(credentials: LoginCredentials) {
     this.errorMessage.set('');
     try {
-      const user = this.workflow.login(this.loginForm().phoneNumber, this.loginForm().password);
+      const user = this.workflow.login(credentials.phoneNumber, credentials.password);
       this.successMessage.set(`Welcome ${user.name}. Redirecting to your dashboard.`);
       this.activeView.set('dashboard');
     } catch (err: any) {
@@ -102,8 +103,13 @@ export class AppComponent {
     this.successMessage.set('');
   }
 
-  updateLogin(field: 'phoneNumber' | 'password', value: string) {
-    this.loginForm.set({ ...this.loginForm(), [field]: value });
+  handleCredentialsChange(credentials: LoginCredentials) {
+    this.loginForm.set(credentials);
+  }
+
+  handleForgotPassword() {
+    this.errorMessage.set('');
+    this.successMessage.set('Use the admin portal to reset your password, then authenticate via POST /api/admin/auth/login.');
   }
 
   updateNewRequest(field: 'assetName' | 'description', value: string) {

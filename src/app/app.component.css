@@ -22,50 +22,6 @@
   color: #6b7280;
 }
 
-.login-screen {
-  display: grid;
-  place-items: center;
-  padding: 80px 16px;
-  background: radial-gradient(circle at 15% 20%, rgba(64, 188, 255, 0.1), transparent 30%),
-    radial-gradient(circle at 80% 10%, rgba(99, 102, 241, 0.15), transparent 25%),
-    linear-gradient(145deg, #0f172a, #0b1320 60%);
-  color: #e5e7eb;
-}
-
-.login-card {
-  width: min(960px, 100%);
-  background: #0f172a;
-  border: 1px solid #1f2937;
-  border-radius: 24px;
-  padding: 32px;
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 24px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-}
-
-.login-card h1 {
-  margin: 4px 0 8px;
-  color: #f8fafc;
-}
-
-.login-card .form label {
-  color: #e5e7eb;
-}
-
-.login-card input {
-  background: #111827;
-  color: #f8fafc;
-  border-color: #1f2937;
-}
-
-.quick-roles {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-}
-
 .layout {
   display: grid;
   grid-template-columns: 280px 1fr;
