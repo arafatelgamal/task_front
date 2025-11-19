@@ -1,268 +1,419 @@
-<div class="page">
-  <header class="hero">
-    <div>
-      <p class="eyebrow">Facilities workflow · static simulation</p>
-      <h1>Asset request lifecycle for employee, manager, and technician.</h1>
-      <p class="lede">
-        Submit an asset issue as an employee, route decisions through the manager, and allow technicians to close
-        tickets with evidence. Each action mirrors the provided API endpoints and enforces role-specific permissions.
-      </p>
-    </div>
-    <div class="badge">JWT ready</div>
-  </header>
-
-  <section class="card-grid">
-    <article class="card">
-      <div class="card-header">
-        <div>
-          <p class="eyebrow">Authentication</p>
-          <h2>Login by role</h2>
+<div class="app-shell">
+  <!-- Login screen -->
+  <section class="login-screen" *ngIf="!currentUser()">
+    <div class="login-card">
+      <div>
+        <p class="eyebrow">Secure access</p>
+        <h1>Sign in to the maintenance desk</h1>
+        <p class="muted">Use the sample accounts or your own credentials to reach the dashboard.</p>
+        <div class="quick-roles">
+          <button type="button" (click)="loginForm.set({ phoneNumber: '+966500000100', password: 'Manager@12345' })">Manager</button>
+          <button type="button" (click)="loginForm.set({ phoneNumber: '+966500000000', password: 'Employee@12345' })">Employee</button>
+          <button type="button" (click)="loginForm.set({ phoneNumber: '+966500000001', password: 'Tech@12345' })">Technician</button>
         </div>
-        <span class="pill">/api/admin/auth/login</span>
       </div>
       <form class="form" (ngSubmit)="login()">
         <label>
           Phone number
           <input
             type="text"
-            [ngModel]="loginPayload().phoneNumber"
-            (ngModelChange)="updateLogin('phoneNumber', $event)"
             name="phone"
+            [ngModel]="loginForm().phoneNumber"
+            (ngModelChange)="updateLogin('phoneNumber', $event)"
+            placeholder="+966..."
           />
         </label>
         <label>
           Password
           <input
             type="password"
-            [ngModel]="loginPayload().password"
-            (ngModelChange)="updateLogin('password', $event)"
             name="password"
+            [ngModel]="loginForm().password"
+            (ngModelChange)="updateLogin('password', $event)"
+            placeholder="•••••••"
           />
-        </label>
-        <label>
-          Role
-          <select
-            [ngModel]="loginPayload().role"
-            (ngModelChange)="updateLogin('role', $event)"
-            name="role"
-          >
-            <option value="employee">Employee</option>
-            <option value="manager">Manager</option>
-            <option value="technician">Technician</option>
-          </select>
         </label>
         <button type="submit">Login</button>
       </form>
-
-      <div class="role-summary" *ngIf="currentUser() as user">
-        <h3>{{ user.name }} <span class="chip">{{ user.role }}</span></h3>
-        <p class="muted">Phone: {{ user.phoneNumber }} · Permissions: {{ user.permissions.join(', ') }}</p>
-        <div class="endpoint-list">
-          <p class="muted">Endpoints used by this role</p>
-          <div class="pill" *ngFor="let endpoint of getEndpointDescription(user.role)">{{ endpoint }}</div>
-        </div>
+      <div class="help">
+        <p class="muted">Endpoints: /api/admin/auth/login · /api/admin/account/profile · /api/admin/account/logout</p>
       </div>
-    </article>
-
-    <article class="card">
-      <div class="card-header">
-        <div>
-          <p class="eyebrow">Step 1 · Employee</p>
-          <h2>Submit asset issue</h2>
-        </div>
-        <span class="pill">/api/asset-requests (POST)</span>
-      </div>
-      <form class="form" (ngSubmit)="submitRequest()">
-        <label>
-          Asset name
-          <input
-            type="text"
-            [ngModel]="newRequest().assetName"
-            (ngModelChange)="updateNewRequest('assetName', $event)"
-            name="assetName"
-            placeholder="e.g. Printer"
-          />
-        </label>
-        <label>
-          Photo URL
-          <input
-            type="url"
-            [ngModel]="newRequest().assetPhoto"
-            (ngModelChange)="updateNewRequest('assetPhoto', $event)"
-            name="assetPhoto"
-            placeholder="Optional proof"
-          />
-        </label>
-        <label>
-          Description
-          <textarea
-            [ngModel]="newRequest().description"
-            (ngModelChange)="updateNewRequest('description', $event)"
-            name="description"
-            rows="3"
-            placeholder="What went wrong?"
-          ></textarea>
-        </label>
-        <button type="submit">Create request</button>
-      </form>
-      <p class="muted">Created tickets are routed to the manager queue for a yes/no decision.</p>
-    </article>
+    </div>
   </section>
 
-  <section class="card-grid">
-    <article class="card">
-      <div class="card-header">
-        <div>
-          <p class="eyebrow">Step 2 · Manager</p>
-          <h2>Review & assign</h2>
-        </div>
-        <span class="pill">/api/asset-requests/:id/review</span>
+  <!-- Authenticated experience -->
+  <div class="layout" *ngIf="currentUser() as user">
+    <aside class="sidebar">
+      <div class="brand">Asset Desk</div>
+      <div class="profile-mini">
+        <p class="name">{{ user.name }}</p>
+        <p class="muted">{{ user.email || user.phoneNumber }}</p>
+        <span [class]="userBadge(user.role)" class="badge">{{ user.role }}</span>
       </div>
-      <div class="queue" *ngIf="managerQueue().length; else noManagerQueue">
-        <div class="queue-item" *ngFor="let request of managerQueue()">
-          <div class="queue-content">
-            <h3>{{ request.assetName }}</h3>
-            <p class="muted">Submitted by {{ request.employeeName }} · {{ request.createdAt | date: 'short' }}</p>
-            <p>{{ request.description }}</p>
+      <nav class="nav">
+        <button type="button" [class.active]="activeView() === 'dashboard'" (click)="switchView('dashboard')">Dashboard</button>
+        <button type="button" [class.active]="activeView() === 'requests'" (click)="switchView('requests')">Requests</button>
+        <button
+          type="button"
+          [class.active]="activeView() === 'users'"
+          (click)="switchView('users')"
+          *ngIf="user.role === 'manager'"
+        >
+          Users
+        </button>
+        <button type="button" [class.active]="activeView() === 'notifications'" (click)="switchView('notifications')">
+          Notifications
+        </button>
+      </nav>
+      <div class="endpoint-stack">
+        <p class="muted">API touchpoints</p>
+        <div class="pill" *ngFor="let endpoint of endpointLabel(user.role)">{{ endpoint }}</div>
+      </div>
+      <button class="ghost full" type="button" (click)="logout()">Logout</button>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Logged in as {{ user.role }}</p>
+          <h1>Facilities workflow console</h1>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card">
+            <p class="muted">Total</p>
+            <strong>{{ dashboardStats().total }}</strong>
           </div>
-          <div class="queue-actions">
+          <div class="stat-card warn">
+            <p class="muted">Pending</p>
+            <strong>{{ dashboardStats().pending }}</strong>
+          </div>
+          <div class="stat-card info">
+            <p class="muted">In progress</p>
+            <strong>{{ dashboardStats().inProgress }}</strong>
+          </div>
+          <div class="stat-card success">
+            <p class="muted">Completed</p>
+            <strong>{{ dashboardStats().completed }}</strong>
+          </div>
+        </div>
+      </header>
+
+      <section *ngIf="activeView() === 'dashboard'" class="panel-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Quick actions</p>
+              <h2>Start a flow</h2>
+            </div>
+            <span class="pill">/api/asset-requests</span>
+          </div>
+          <div class="action-grid">
+            <button *ngIf="user.role === 'employee'" type="button" (click)="activeView.set('requests')">Add asset request</button>
+            <button *ngIf="user.role === 'manager'" type="button" (click)="activeView.set('users')">Create user</button>
+            <button type="button" (click)="activeView.set('notifications')">View notifications</button>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Recent requests</p>
+              <h2>Workboard</h2>
+            </div>
+            <span class="pill">/api/asset-requests (GET)</span>
+          </div>
+          <div class="list compact" *ngIf="visibleRequests().length; else emptyBoard">
+            <div class="list-item" *ngFor="let request of visibleRequests() | slice:0:4">
+              <div>
+                <p class="muted">#{{ request.id }} · {{ request.createdAt | date: 'short' }}</p>
+                <strong>{{ request.assetName }}</strong>
+                <p class="muted">{{ request.description }}</p>
+              </div>
+              <span [class]="statusChip(request.status)">{{ request.status }}</span>
+            </div>
+          </div>
+          <ng-template #emptyBoard>
+            <p class="muted">No requests in view yet. Create or approve one to populate your board.</p>
+          </ng-template>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Timeline</p>
+              <h2>Latest notifications</h2>
+            </div>
+            <span class="pill">/api/admin/notifications/list</span>
+          </div>
+          <div class="list compact" *ngIf="myNotifications().length; else noNotes">
+            <div class="list-item" *ngFor="let note of myNotifications() | slice:0:5">
+              <div>
+                <strong>{{ note.message }}</strong>
+                <p class="muted">{{ note.createdAt | date: 'short' }}</p>
+              </div>
+              <span class="badge">{{ note.relatedRequestId ? ('#' + note.relatedRequestId) : '—' }}</span>
+            </div>
+          </div>
+          <ng-template #noNotes>
+            <p class="muted">Work an item to see live notifications for your role.</p>
+          </ng-template>
+        </article>
+      </section>
+
+      <section *ngIf="activeView() === 'requests'" class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Requests</p>
+            <h2>Submit and manage tickets</h2>
+          </div>
+          <div class="filter-row">
             <label>
-              Assign technician
+              Status
               <select
-                [ngModel]="reviewTechnician()"
-                (ngModelChange)="reviewTechnician.set($event)"
-                name="technician"
+                [ngModel]="requestFilters().status"
+                (ngModelChange)="updateRequestFilter('status', $event)"
+                name="statusFilter"
               >
-                <option [ngValue]="undefined">Choose</option>
-                <option *ngFor="let tech of technicians" [ngValue]="tech.id">{{ tech.name }}</option>
+                <option value="all">All</option>
+                <option value="PendingReview">Pending review</option>
+                <option value="InProgress">In progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Rejected">Rejected</option>
               </select>
             </label>
             <label>
-              Manager note
-              <textarea
-                [ngModel]="reviewNote()"
-                (ngModelChange)="reviewNote.set($event)"
-                name="managerNote"
-                rows="2"
-                placeholder="Decision rationale"
-              ></textarea>
+              <input
+                type="checkbox"
+                [ngModel]="requestFilters().onlyMine"
+                (ngModelChange)="updateRequestFilter('onlyMine', $event)"
+                name="mine"
+              />
+              Only my requests
             </label>
-            <div class="action-row">
-              <button type="button" (click)="approveRequest(request)">Approve</button>
-              <button type="button" class="ghost" (click)="rejectRequest(request)">Reject</button>
+          </div>
+        </div>
+
+        <div class="request-layout">
+          <aside *ngIf="user.role === 'employee'" class="request-form">
+            <h3>New asset request</h3>
+            <form class="form" (ngSubmit)="submitRequest()">
+              <label>
+                Asset name
+                <input
+                  type="text"
+                  name="assetName"
+                  [ngModel]="newRequest().assetName"
+                  (ngModelChange)="updateNewRequest('assetName', $event)"
+                  placeholder="e.g., AC, printer"
+                />
+              </label>
+              <label>
+                Photo upload
+                <input type="file" accept="image/*" (change)="handleAssetFile($event)" />
+                <span class="muted" *ngIf="newRequest().assetPhotoName">{{ newRequest().assetPhotoName }}</span>
+              </label>
+              <label>
+                Description
+                <textarea
+                  name="description"
+                  rows="3"
+                  [ngModel]="newRequest().description"
+                  (ngModelChange)="updateNewRequest('description', $event)"
+                  placeholder="Describe the issue"
+                ></textarea>
+              </label>
+              <button type="submit">Submit</button>
+            </form>
+          </aside>
+
+          <div class="request-list">
+            <div class="card" *ngFor="let request of visibleRequests()">
+              <div class="card-head">
+                <div>
+                  <p class="muted">#{{ request.id }} · {{ request.createdAt | date: 'short' }}</p>
+                  <h3>{{ request.assetName }}</h3>
+                  <p class="muted">Submitted by {{ request.employeeName }}</p>
+                </div>
+                <span [class]="statusChip(request.status)">{{ request.status }}</span>
+              </div>
+              <p>{{ request.description }}</p>
+              <div class="attachments" *ngIf="request.assetPhoto">
+                <img [src]="request.assetPhoto" alt="Attachment" />
+                <span class="muted">{{ request.assetPhotoName || 'Employee upload' }}</span>
+              </div>
+
+              <div class="manager-tools" *ngIf="user.role === 'manager' && request.status === 'PendingReview'">
+                <label>
+                  Assign technician
+                  <select
+                    [ngModel]="reviewTechnician()"
+                    (ngModelChange)="reviewTechnician.set($event)"
+                    name="technician"
+                  >
+                    <option [ngValue]="undefined">Choose</option>
+                    <option *ngFor="let tech of technicians()" [ngValue]="tech.id">{{ tech.name }}</option>
+                  </select>
+                </label>
+                <label>
+                  Decision note
+                  <textarea
+                    rows="2"
+                    [ngModel]="reviewNote()"
+                    (ngModelChange)="reviewNote.set($event)"
+                    name="managerNote"
+                  ></textarea>
+                </label>
+                <div class="action-row">
+                  <button type="button" (click)="approveRequest(request)">Approve</button>
+                  <button type="button" class="ghost" (click)="rejectRequest(request)">Reject</button>
+                </div>
+              </div>
+
+              <div class="tech-tools" *ngIf="user.role === 'technician' && request.status === 'InProgress'">
+                <label>
+                  Resolution note
+                  <textarea
+                    rows="2"
+                    [ngModel]="technicianNotes()[request.id]?.note"
+                    (ngModelChange)="updateTechNote(request.id, 'note', $event)"
+                    [attr.name]="'techNote-' + request.id"
+                  ></textarea>
+                </label>
+                <label>
+                  Upload after-fix photo
+                  <input type="file" accept="image/*" (change)="handleTechFile(request.id, $event)" />
+                  <span class="muted" *ngIf="technicianNotes()[request.id]?.photoName">{{ technicianNotes()[request.id]?.photoName }}</span>
+                </label>
+                <button type="button" (click)="completeRequest(request)">Mark completed</button>
+              </div>
+
+              <div class="history">
+                <p class="eyebrow">History</p>
+                <div class="history-entry" *ngFor="let item of request.history">
+                  <span>{{ item.label }}</span>
+                  <span class="muted">{{ item.at | date: 'short' }}</span>
+                </div>
+              </div>
+
+              <div class="ticket-actions" *ngIf="request.status === 'Rejected' && user.role === 'manager'">
+                <button class="ghost" type="button" (click)="archive(request)">Archive rejection</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <ng-template #noManagerQueue>
-        <p class="muted">No pending approvals. Approved items will notify technicians automatically.</p>
-      </ng-template>
-    </article>
+      </section>
 
-    <article class="card">
-      <div class="card-header">
-        <div>
-          <p class="eyebrow">Step 3 · Technician</p>
-          <h2>Upload fix & close</h2>
-        </div>
-        <span class="pill">/api/asset-requests/:id/complete</span>
-      </div>
-      <div class="queue" *ngIf="technicianQueue().length; else noTechQueue">
-        <div class="queue-item" *ngFor="let request of technicianQueue()">
-          <div class="queue-content">
-            <h3>{{ request.assetName }}</h3>
-            <p class="muted">Assigned to {{ request.technicianName || 'Unassigned' }}</p>
-            <p>{{ request.managerNote || 'Awaiting technician confirmation.' }}</p>
+      <section *ngIf="activeView() === 'users'" class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">User directory</p>
+            <h2>Accounts & permissions</h2>
           </div>
-          <div class="queue-actions">
-            <label>
-              Resolution note
-              <textarea
-                [ngModel]="techNoteValue(request.id, 'note')"
-                (ngModelChange)="updateTechNote(request.id, 'note', $event)"
-                rows="2"
-                [attr.name]="'techNote-' + request.id"
-              ></textarea>
-            </label>
-            <label>
-              Photo after fix
-              <input
-                type="url"
-                [ngModel]="techNoteValue(request.id, 'photo')"
-                (ngModelChange)="updateTechNote(request.id, 'photo', $event)"
-                [attr.name]="'techPhoto-' + request.id"
-                placeholder="Image URL"
-              />
-            </label>
-            <button type="button" (click)="completeRequest(request)">Mark completed</button>
+          <span class="pill">/api/admin/users/paginated</span>
+        </div>
+        <div class="user-layout">
+          <div class="user-form card">
+            <h3>Create user</h3>
+            <form class="form" (ngSubmit)="createUser()">
+              <label>
+                Full name
+                <input
+                  type="text"
+                  name="fullName"
+                  [ngModel]="userForm().name"
+                  (ngModelChange)="updateUserForm('name', $event)"
+                />
+              </label>
+              <label>
+                Phone number
+                <input
+                  type="text"
+                  name="phone"
+                  [ngModel]="userForm().phoneNumber"
+                  (ngModelChange)="updateUserForm('phoneNumber', $event)"
+                />
+              </label>
+              <label>
+                Email
+                <input
+                  type="email"
+                  name="email"
+                  [ngModel]="userForm().email"
+                  (ngModelChange)="updateUserForm('email', $event)"
+                />
+              </label>
+              <label>
+                Role
+                <select [ngModel]="userForm().role" (ngModelChange)="updateUserForm('role', $event)" name="role">
+                  <option value="employee">Employee</option>
+                  <option value="manager">Manager</option>
+                  <option value="technician">Technician</option>
+                </select>
+              </label>
+              <label>
+                Password
+                <input
+                  type="text"
+                  name="password"
+                  [ngModel]="userForm().password"
+                  (ngModelChange)="updateUserForm('password', $event)"
+                />
+              </label>
+              <label>
+                Status
+                <select [ngModel]="userForm().status" (ngModelChange)="updateUserForm('status', $event)" name="status">
+                  <option value="Active">Active</option>
+                  <option value="Suspended">Suspended</option>
+                </select>
+              </label>
+              <button type="submit">Create user</button>
+            </form>
+          </div>
+          <div class="user-table card">
+            <h3>Existing users</h3>
+            <div class="list compact">
+              <div class="list-item" *ngFor="let account of users()">
+                <div>
+                  <strong>{{ account.name }}</strong>
+                  <p class="muted">{{ account.email || account.phoneNumber }}</p>
+                  <p class="muted">Joined {{ account.createdAt | date: 'mediumDate' }}</p>
+                </div>
+                <div class="user-tags">
+                  <span [class]="userBadge(account.role)">{{ account.role }}</span>
+                  <span class="chip" [class.muted]="account.status === 'Suspended'">{{ account.status }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <ng-template #noTechQueue>
-        <p class="muted">No assigned work yet. Completed items will notify the manager and employee.</p>
-      </ng-template>
-    </article>
-  </section>
+      </section>
 
-  <section class="card-grid two-col">
-    <article class="card">
-      <div class="card-header">
-        <div>
-          <p class="eyebrow">Live feed</p>
-          <h2>Workflow notifications</h2>
+      <section *ngIf="activeView() === 'notifications'" class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Live feed</p>
+            <h2>Notifications</h2>
+          </div>
+          <span class="pill">/api/admin/notifications</span>
         </div>
-        <span class="pill">/api/admin/notifications</span>
-      </div>
-      <ng-container *ngIf="notifications().length; else emptyNotifications">
-        <div class="list">
-          <div class="list-item" *ngFor="let note of notifications()">
+        <div class="list" *ngIf="myNotifications().length; else noNotifications">
+          <div class="list-item" *ngFor="let note of myNotifications()">
             <div>
-              <p>{{ note.message }}</p>
+              <strong>{{ note.message }}</strong>
               <p class="muted">{{ note.createdAt | date: 'short' }}</p>
             </div>
             <span class="badge">{{ note.relatedRequestId ? ('#' + note.relatedRequestId) : '—' }}</span>
           </div>
         </div>
-      </ng-container>
-      <ng-template #emptyNotifications>
-        <p class="muted">Sign in to see role-specific notifications as you progress through the flow.</p>
-      </ng-template>
-    </article>
+        <ng-template #noNotifications>
+          <p class="muted">Actions you take on requests will appear here.</p>
+        </ng-template>
+      </section>
 
-    <article class="card">
-      <div class="card-header">
-        <div>
-          <p class="eyebrow">Traceability</p>
-          <h2>Tickets & history</h2>
-        </div>
-        <span class="pill">/api/asset-requests (GET)</span>
-      </div>
-      <div class="list">
-        <div class="list-item" *ngFor="let request of allRequests()">
-          <div class="ticket">
-            <div>
-              <h3>{{ request.assetName }}</h3>
-              <p class="muted">Created {{ request.createdAt | date: 'short' }}</p>
-            </div>
-            <span class="chip" [class]="statusChip(request.status)">{{ request.status }}</span>
-          </div>
-          <p class="muted">{{ request.description }}</p>
-          <div class="history">
-            <div class="history-entry" *ngFor="let item of request.history">
-              <span>{{ item.label }}</span>
-              <span class="muted">{{ item.at | date: 'short' }}</span>
-            </div>
-          </div>
-          <div class="ticket-actions" *ngIf="request.status === 'Rejected'">
-            <button class="ghost" type="button" (click)="archive(request)">Archive rejection</button>
-          </div>
-        </div>
-      </div>
-    </article>
-  </section>
-
-  <section class="system-messages" *ngIf="errorMessage() || successMessage()">
-    <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
-    <p class="success" *ngIf="successMessage()">{{ successMessage() }}</p>
-  </section>
+      <section class="system-messages" *ngIf="errorMessage() || successMessage()">
+        <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+        <p class="success" *ngIf="successMessage()">{{ successMessage() }}</p>
+      </section>
+    </main>
+  </div>
 </div>
