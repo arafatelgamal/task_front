@@ -107,7 +107,7 @@
 }
 
 .phone-input .country-code {
-  flex: 0 0 110px;
+  flex: 0 0 80px;
   text-align: center;
   border-right: 1px solid #1f2937;
   font-weight: 700;
