@@ -1,45 +1,14 @@
 <div class="app-shell">
   <!-- Login screen -->
-  <section class="login-screen" *ngIf="!currentUser()">
-    <div class="login-card">
-      <div>
-        <p class="eyebrow">Secure access</p>
-        <h1>Sign in to the maintenance desk</h1>
-        <p class="muted">Use the sample accounts or your own credentials to reach the dashboard.</p>
-        <div class="quick-roles">
-          <button type="button" (click)="loginForm.set({ phoneNumber: '+966500000100', password: 'Manager@12345' })">Manager</button>
-          <button type="button" (click)="loginForm.set({ phoneNumber: '+966500000000', password: 'Employee@12345' })">Employee</button>
-          <button type="button" (click)="loginForm.set({ phoneNumber: '+966500000001', password: 'Tech@12345' })">Technician</button>
-        </div>
-      </div>
-      <form class="form" (ngSubmit)="login()">
-        <label>
-          Phone number
-          <input
-            type="text"
-            name="phone"
-            [ngModel]="loginForm().phoneNumber"
-            (ngModelChange)="updateLogin('phoneNumber', $event)"
-            placeholder="+966..."
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            name="password"
-            [ngModel]="loginForm().password"
-            (ngModelChange)="updateLogin('password', $event)"
-            placeholder="•••••••"
-          />
-        </label>
-        <button type="submit">Login</button>
-      </form>
-      <div class="help">
-        <p class="muted">Endpoints: /api/admin/auth/login · /api/admin/account/profile · /api/admin/account/logout</p>
-      </div>
-    </div>
-  </section>
+  <app-login-screen
+    *ngIf="!currentUser()"
+    [credentials]="loginForm()"
+    [error]="errorMessage()"
+    [success]="successMessage()"
+    (credentialsChange)="handleCredentialsChange($event)"
+    (login)="login($event)"
+    (forgotPassword)="handleForgotPassword()"
+  />
 
   <!-- Authenticated experience -->
   <div class="layout" *ngIf="currentUser() as user">
