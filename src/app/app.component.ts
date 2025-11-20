@@ -1,9 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal } from '@angular/core';
+import { Component, ViewEncapsulation, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AssetRequest, UserRole } from './models';
-import { LoginAdminResponse, LoginCredentials, LoginScreenComponent } from './login/login-screen.component';
+import { LoginScreenComponent } from './login/login-screen.component';
 import { WorkflowService } from './workflow.service';
+import { LoginAdminResponse, LoginCredentials } from './login/auth.models';
+import { SidebarComponent } from './sidebar/sidebar.component';
+import { UserManagementComponent } from './users/user-management.component';
+import { AuthService } from './services/auth.service';
 
 type AppView = 'dashboard' | 'requests' | 'users' | 'notifications';
 
@@ -14,7 +18,8 @@ type RequestFilters = { status: AssetRequest['status'] | 'all'; onlyMine: boolea
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoginScreenComponent],
+  encapsulation: ViewEncapsulation.None,
+  imports: [CommonModule, FormsModule, LoginScreenComponent, SidebarComponent, UserManagementComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
@@ -29,27 +34,17 @@ export class AppComponent {
   reviewNote = signal('');
   reviewTechnician = signal<number | undefined>(undefined);
   technicianNotes = signal<TechnicianNoteState>({});
-  userForm = signal({
-    name: '',
-    phoneNumber: '',
-    email: '',
-    role: 'employee' as UserRole,
-    password: 'Temp@12345',
-    status: 'Active' as const,
-  });
   activeView = signal<AppView>('dashboard');
   errorMessage = signal('');
   successMessage = signal('');
 
-  constructor(private readonly workflow: WorkflowService) {}
+  constructor(private readonly workflow: WorkflowService, private readonly auth: AuthService) {}
 
   currentUser = computed(() => this.workflow.currentUser());
 
   technicians = computed(() => this.workflow.getTechnicians());
 
   allRequests = computed(() => this.workflow.requests());
-
-  users = computed(() => this.workflow.listUsers());
 
   visibleRequests = computed(() => {
     const user = this.workflow.currentUser();
@@ -83,6 +78,7 @@ export class AppComponent {
   });
 
   logout() {
+    this.auth.logout();
     this.workflow.logout();
     this.activeView.set('dashboard');
   }
@@ -109,10 +105,6 @@ export class AppComponent {
 
   updateRequestFilter(field: keyof RequestFilters, value: any) {
     this.requestFilters.set({ ...this.requestFilters(), [field]: value });
-  }
-
-  updateUserForm(field: keyof ReturnType<typeof this.userForm>, value: any) {
-    this.userForm.set({ ...this.userForm(), [field]: value });
   }
 
   handleAssetFile(event: Event) {
@@ -223,27 +215,6 @@ export class AppComponent {
     this.workflow.archiveRejected(request.id);
   }
 
-  createUser() {
-    this.successMessage.set('');
-    this.errorMessage.set('');
-    const payload = this.userForm();
-    if (!payload.name || !payload.phoneNumber) {
-      this.errorMessage.set('Name and phone number are required.');
-      return;
-    }
-
-    try {
-      this.workflow.addUser({
-        ...payload,
-        permissions: [],
-      } as any);
-      this.successMessage.set(`${payload.name} created successfully.`);
-      this.userForm.set({ name: '', phoneNumber: '', email: '', role: 'employee', password: 'Temp@12345', status: 'Active' });
-    } catch (err: any) {
-      this.errorMessage.set(err.message ?? 'Unable to create user');
-    }
-  }
-
   statusChip(status: AssetRequest['status']) {
     const map: Record<AssetRequest['status'], string> = {
       Drafted: 'chip muted',
@@ -255,15 +226,6 @@ export class AppComponent {
       Archived: 'chip muted',
     };
     return map[status];
-  }
-
-  userBadge(role: UserRole) {
-    const map: Record<UserRole, string> = {
-      employee: 'badge',
-      manager: 'badge badge-dark',
-      technician: 'badge badge-info',
-    };
-    return map[role];
   }
 
   endpointLabel(role: UserRole) {

@@ -1,0 +1,27 @@
+.user-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 16px;
+}
+
+.user-form input,
+.user-form select {
+  width: 100%;
+}
+
+.user-table .list-item {
+  align-items: flex-start;
+}
+
+.user-tags {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+  .user-layout {
+    grid-template-columns: 1fr;
+  }
+}

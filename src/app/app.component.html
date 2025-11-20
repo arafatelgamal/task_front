@@ -9,34 +9,13 @@
 
   <!-- Authenticated experience -->
   <div class="layout" *ngIf="currentUser() as user">
-    <aside class="sidebar">
-      <div class="brand">Asset Desk</div>
-      <div class="profile-mini">
-        <p class="name">{{ user.name }}</p>
-        <p class="muted">{{ user.email || user.phoneNumber }}</p>
-        <span [class]="userBadge(user.role)" class="badge">{{ user.role }}</span>
-      </div>
-      <nav class="nav">
-        <button type="button" [class.active]="activeView() === 'dashboard'" (click)="switchView('dashboard')">Dashboard</button>
-        <button type="button" [class.active]="activeView() === 'requests'" (click)="switchView('requests')">Requests</button>
-        <button
-          type="button"
-          [class.active]="activeView() === 'users'"
-          (click)="switchView('users')"
-          *ngIf="user.role === 'manager'"
-        >
-          Users
-        </button>
-        <button type="button" [class.active]="activeView() === 'notifications'" (click)="switchView('notifications')">
-          Notifications
-        </button>
-      </nav>
-      <div class="endpoint-stack">
-        <p class="muted">API touchpoints</p>
-        <div class="pill" *ngFor="let endpoint of endpointLabel(user.role)">{{ endpoint }}</div>
-      </div>
-      <button class="ghost full" type="button" (click)="logout()">Logout</button>
-    </aside>
+    <app-sidebar
+      [user]="user"
+      [activeView]="activeView()"
+      [endpoints]="endpointLabel(user.role)"
+      (viewChange)="switchView($event)"
+      (logout)="logout()"
+    />
 
     <main>
       <header class="topbar">
@@ -269,90 +248,7 @@
         </div>
       </section>
 
-      <section *ngIf="activeView() === 'users'" class="panel">
-        <div class="panel-header">
-          <div>
-            <p class="eyebrow">User directory</p>
-            <h2>Accounts & permissions</h2>
-          </div>
-          <span class="pill">/api/admin/users/paginated</span>
-        </div>
-        <div class="user-layout">
-          <div class="user-form card">
-            <h3>Create user</h3>
-            <form class="form" (ngSubmit)="createUser()">
-              <label>
-                Full name
-                <input
-                  type="text"
-                  name="fullName"
-                  [ngModel]="userForm().name"
-                  (ngModelChange)="updateUserForm('name', $event)"
-                />
-              </label>
-              <label>
-                Phone number
-                <input
-                  type="text"
-                  name="phone"
-                  [ngModel]="userForm().phoneNumber"
-                  (ngModelChange)="updateUserForm('phoneNumber', $event)"
-                />
-              </label>
-              <label>
-                Email
-                <input
-                  type="email"
-                  name="email"
-                  [ngModel]="userForm().email"
-                  (ngModelChange)="updateUserForm('email', $event)"
-                />
-              </label>
-              <label>
-                Role
-                <select [ngModel]="userForm().role" (ngModelChange)="updateUserForm('role', $event)" name="role">
-                  <option value="employee">Employee</option>
-                  <option value="manager">Manager</option>
-                  <option value="technician">Technician</option>
-                </select>
-              </label>
-              <label>
-                Password
-                <input
-                  type="text"
-                  name="password"
-                  [ngModel]="userForm().password"
-                  (ngModelChange)="updateUserForm('password', $event)"
-                />
-              </label>
-              <label>
-                Status
-                <select [ngModel]="userForm().status" (ngModelChange)="updateUserForm('status', $event)" name="status">
-                  <option value="Active">Active</option>
-                  <option value="Suspended">Suspended</option>
-                </select>
-              </label>
-              <button type="submit">Create user</button>
-            </form>
-          </div>
-          <div class="user-table card">
-            <h3>Existing users</h3>
-            <div class="list compact">
-              <div class="list-item" *ngFor="let account of users()">
-                <div>
-                  <strong>{{ account.name }}</strong>
-                  <p class="muted">{{ account.email || account.phoneNumber }}</p>
-                  <p class="muted">Joined {{ account.createdAt | date: 'mediumDate' }}</p>
-                </div>
-                <div class="user-tags">
-                  <span [class]="userBadge(account.role)">{{ account.role }}</span>
-                  <span class="chip" [class.muted]="account.status === 'Suspended'">{{ account.status }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <app-user-management *ngIf="activeView() === 'users'" />
 
       <section *ngIf="activeView() === 'notifications'" class="panel">
         <div class="panel-header">

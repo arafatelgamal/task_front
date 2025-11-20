@@ -1,0 +1,29 @@
+import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { UserAccount } from '../models';
+
+export type SidebarView = 'dashboard' | 'requests' | 'users' | 'notifications';
+
+@Component({
+  selector: 'app-sidebar',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.css',
+})
+export class SidebarComponent {
+  @Input() activeView: SidebarView = 'dashboard';
+  @Input() user: UserAccount | null = null;
+  @Input() endpoints: string[] = [];
+
+  @Output() viewChange = new EventEmitter<SidebarView>();
+  @Output() logout = new EventEmitter<void>();
+
+  changeView(view: SidebarView) {
+    this.viewChange.emit(view);
+  }
+
+  handleLogout() {
+    this.logout.emit();
+  }
+}
