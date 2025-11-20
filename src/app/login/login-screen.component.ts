@@ -1,35 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-
-var baseUrl = 'https://localhost:5550';
-
-export interface LoginCredentials {
-  countryCode: string;
-  phoneNumber: string;
-  password: string;
-}
-
-export interface AdminUserDto {
-  id: number;
-  email: string;
-  fullName?: string;
-  phoneNumber?: string;
-  nationalId?: string;
-  role: string;
-  permissions: string[];
-  joinedDate: string;
-  isActive: boolean;
-}
-
-export interface LoginAdminResponse {
-  token: string;
-  refreshToken: string;
-  user: AdminUserDto;
-}
-
-type ApiResponse<T> = { data?: T; succeeded?: boolean; message?: string } & Partial<T>;
+import { AuthService } from '../services/auth.service';
+import { ApiResponse } from '../shared/api-response';
+import { LoginAdminResponse, LoginCredentials } from './auth.models';
 
 @Component({
   selector: 'app-login-screen',
@@ -48,7 +22,7 @@ export class LoginScreenComponent {
 
   loading = false;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly auth: AuthService) {}
 
   updateField(field: keyof LoginCredentials, value: string) {
     this.credentialsChange.emit({ ...this.credentials, [field]: value });
@@ -59,30 +33,23 @@ export class LoginScreenComponent {
     this.success = '';
     this.loading = true;
 
-    const phoneWithCountry = `${(this.credentials.countryCode || '').trim()}${(this.credentials.phoneNumber || '').trim()}`;
-
-    this.http
-      .post<ApiResponse<LoginAdminResponse>>(baseUrl+'/api/admin/auth/login', {
-        phoneNumber: phoneWithCountry,
-        password: this.credentials.password,
-      })
-      .subscribe({
-        next: (response) => {
-          const payload = (response as ApiResponse<LoginAdminResponse>).data ?? (response as LoginAdminResponse);
-          if (!payload || !payload.user) {
-            this.error = response.message || 'Unexpected response from server.';
-            this.loading = false;
-            return;
-          }
-
-          this.success = `Welcome ${payload.user.fullName || payload.user.email || 'Admin'}.`;
-          this.authenticated.emit(payload as LoginAdminResponse);
+    this.auth.login(this.credentials).subscribe({
+      next: (response) => {
+        const payload = (response as ApiResponse<LoginAdminResponse>).data ?? (response as LoginAdminResponse);
+        if (!payload || !payload.user) {
+          this.error = (response as ApiResponse<LoginAdminResponse>).message || 'Unexpected response from server.';
           this.loading = false;
-        },
-        error: (err) => {
-          this.error = err?.error?.message || 'Unable to sign in. Please check your credentials.';
-          this.loading = false;
-        },
-      });
+          return;
+        }
+
+        this.success = `Welcome ${payload.user.fullName || payload.user.email || 'Admin'}.`;
+        this.authenticated.emit(payload as LoginAdminResponse);
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'Unable to sign in. Please check your credentials.';
+        this.loading = false;
+      },
+    });
   }
 }

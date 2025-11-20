@@ -1,0 +1,103 @@
+.sidebar {
+  background: #0f172a;
+  color: #e5e7eb;
+  padding: 24px;
+  display: grid;
+  gap: 24px;
+  align-content: start;
+  border-right: 1px solid #111827;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-mini {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.profile-mini .name {
+  margin: 0 0 4px;
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.nav {
+  display: grid;
+  gap: 8px;
+}
+
+.nav button {
+  background: #111827;
+  border: 1px solid #1f2937;
+  color: #e5e7eb;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.nav button.active {
+  border-color: #60a5fa;
+  transform: translateX(4px);
+}
+
+.nav button:hover {
+  border-color: #334155;
+}
+
+.endpoint-stack {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ghost.full {
+  color: #e5e7eb;
+  border-color: #1f2937;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  background: #111827;
+  color: white;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.badge-dark {
+  background: #0ea5e9;
+}
+
+.badge-info {
+  background: #10b981;
+}
