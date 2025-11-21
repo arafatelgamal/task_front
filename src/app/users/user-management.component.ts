@@ -18,6 +18,7 @@ export class UserManagementComponent implements OnInit {
   error = signal('');
   success = signal('');
   roles = signal<RoleItemDto[]>([]);
+  showCreateModal = signal(false);
 
   adminForm = signal<AddAdminUserCommand>({
     email: '',
@@ -84,12 +85,21 @@ export class UserManagementComponent implements OnInit {
       next: (response) => {
         this.success.set(`User ${payload.fullName || payload.email} created (id: ${response.userId}).`);
         this.adminForm.set({ email: '', fullName: '', phoneNumber: '', nationalId: '', password: 'Temp@12345', roles: [] });
+        this.showCreateModal.set(false);
         this.loadUsers();
       },
       error: (err) => {
         this.error.set(err?.error?.message || 'Unable to add admin user.');
       },
     });
+  }
+
+  openCreateDialog() {
+    this.showCreateModal.set(true);
+  }
+
+  closeCreateDialog() {
+    this.showCreateModal.set(false);
   }
 
   toggleUser(user: UserDto) {

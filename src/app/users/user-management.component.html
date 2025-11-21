@@ -4,50 +4,14 @@
       <p class="eyebrow">User directory</p>
       <h2>Accounts & permissions</h2>
     </div>
-    <span class="pill">/api/admin/users/paginated</span>
+    <div class="header-actions">
+      <button type="button" (click)="openCreateDialog()">New admin</button>
+      <span class="pill">/api/admin/users/paginated</span>
+    </div>
   </div>
 
   <div class="user-layout">
-    <div class="user-form card">
-      <h3>Create admin</h3>
-      <form class="form" (ngSubmit)="submitAdmin()">
-        <label>
-          Full name
-          <input type="text" name="fullName" [ngModel]="adminForm().fullName" (ngModelChange)="updateAdmin('fullName', $event)" />
-        </label>
-        <label>
-          Email
-          <input type="email" name="email" [ngModel]="adminForm().email" (ngModelChange)="updateAdmin('email', $event)" />
-        </label>
-        <label>
-          Phone number
-          <input
-            type="text"
-            name="phoneNumber"
-            [ngModel]="adminForm().phoneNumber"
-            (ngModelChange)="updateAdmin('phoneNumber', $event)"
-          />
-        </label>
-        <label>
-          National ID
-          <input type="text" name="nationalId" [ngModel]="adminForm().nationalId" (ngModelChange)="updateAdmin('nationalId', $event)" />
-        </label>
-        <label>
-          Temporary password
-          <input type="text" name="password" [ngModel]="adminForm().password" (ngModelChange)="updateAdmin('password', $event)" />
-        </label>
-        <label>
-          Roles
-          <select name="roles" multiple [ngModel]="adminForm().roles" (ngModelChange)="updateRoles($event)">
-            <option *ngFor="let role of roles()" [ngValue]="role.value">{{ role.label }}</option>
-          </select>
-          <span class="muted helper">Select one or more internal roles</span>
-        </label>
-        <button type="submit">Create user</button>
-      </form>
-    </div>
-
-    <div class="user-table card">
+    <div class="user-table card full-width">
       <div class="panel-header">
         <div>
           <p class="eyebrow">Existing users</p>
@@ -98,6 +62,64 @@
     </div>
   </div>
 </section>
+
+<div class="dialog-backdrop" *ngIf="showCreateModal()" (click)="closeCreateDialog()">
+  <div class="dialog card" (click)="$event.stopPropagation()">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Create admin</p>
+        <h3>New internal account</h3>
+      </div>
+      <button class="ghost" type="button" (click)="closeCreateDialog()">Close</button>
+    </div>
+    <form class="form" (ngSubmit)="submitAdmin()">
+      <label>
+        Full name
+        <input type="text" name="fullName" [ngModel]="adminForm().fullName" (ngModelChange)="updateAdmin('fullName', $event)" />
+      </label>
+      <label>
+        Email
+        <input type="email" name="email" [ngModel]="adminForm().email" (ngModelChange)="updateAdmin('email', $event)" />
+      </label>
+      <label>
+        Phone number
+        <input
+          type="text"
+          name="phoneNumber"
+          [ngModel]="adminForm().phoneNumber"
+          (ngModelChange)="updateAdmin('phoneNumber', $event)"
+        />
+      </label>
+      <label>
+        National ID
+        <input type="text" name="nationalId" [ngModel]="adminForm().nationalId" (ngModelChange)="updateAdmin('nationalId', $event)" />
+      </label>
+      <label>
+        Temporary password
+        <input type="text" name="password" [ngModel]="adminForm().password" (ngModelChange)="updateAdmin('password', $event)" />
+      </label>
+      <label>
+        Roles
+        <select
+          name="roles"
+          multiple
+          size="4"
+          class="role-select"
+          [ngModel]="adminForm().roles"
+          (ngModelChange)="updateRoles($event)"
+        >
+          <option *ngIf="!roles().length" [ngValue]="null" disabled>No active roles available</option>
+          <option *ngFor="let role of roles()" [ngValue]="role.value">{{ role.label }}</option>
+        </select>
+        <span class="muted helper">Select one or more internal roles</span>
+      </label>
+      <div class="dialog-actions">
+        <button type="submit">Create user</button>
+        <button type="button" class="ghost" (click)="closeCreateDialog()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <section class="system-messages" *ngIf="error() || success()">
   <p class="error" *ngIf="error()">{{ error() }}</p>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewEncapsulation, computed, signal } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AssetRequest, UserRole } from './models';
 import { LoginScreenComponent } from './login/login-screen.component';
@@ -23,7 +23,7 @@ type RequestFilters = { status: AssetRequest['status'] | 'all'; onlyMine: boolea
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'Task';
 
   loginForm = signal<LoginCredentials>({ countryCode: '+966', phoneNumber: '', password: '' });
@@ -40,6 +40,14 @@ export class AppComponent {
   mobileNavOpen = signal(false);
 
   constructor(private readonly workflow: WorkflowService, private readonly auth: AuthService) {}
+
+  ngOnInit(): void {
+    const existingUser = this.auth.restoreSession();
+    if (existingUser) {
+      this.workflow.setAuthenticatedAdmin(existingUser);
+      this.activeView.set('dashboard');
+    }
+  }
 
   currentUser = computed(() => this.workflow.currentUser());
 
