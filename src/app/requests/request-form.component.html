@@ -1,0 +1,31 @@
+<aside class="request-form">
+  <h3>New asset request</h3>
+  <form class="form" (ngSubmit)="submitRequest()">
+    <label>
+      Asset name
+      <input
+        type="text"
+        name="assetName"
+        [ngModel]="assetName()"
+        (ngModelChange)="assetName.set($event)"
+        placeholder="e.g., AC, printer"
+      />
+    </label>
+    <label>
+      Photo upload
+      <input type="file" accept="image/*" (change)="handleAssetFile($event)" />
+      <span class="muted" *ngIf="assetPhotoName()">{{ assetPhotoName() }}</span>
+    </label>
+    <label>
+      Description
+      <textarea
+        name="description"
+        rows="3"
+        [ngModel]="description()"
+        (ngModelChange)="description.set($event)"
+        placeholder="Describe the issue"
+      ></textarea>
+    </label>
+    <button type="submit" [disabled]="isSubmitting()">{{ isSubmitting() ? 'Submitting…' : 'Submit' }}</button>
+  </form>
+</aside>

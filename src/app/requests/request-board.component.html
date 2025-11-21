@@ -1,0 +1,98 @@
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <p class="eyebrow">Requests</p>
+      <h2>Submit and manage tickets</h2>
+    </div>
+    <div class="filter-row">
+      <label>
+        Status
+        <select
+          [ngModel]="filters().status"
+          (ngModelChange)="updateRequestFilter('status', $event)"
+          name="statusFilter"
+        >
+          <option value="all">All</option>
+          <option *ngFor="let status of [1, 2, 3, 4]" [ngValue]="status">
+            {{ statusLabel(status) }}
+          </option>
+        </select>
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          [ngModel]="filters().onlyMine"
+          (ngModelChange)="updateRequestFilter('onlyMine', $event)"
+          name="mine"
+        />
+        Only my requests
+      </label>
+    </div>
+  </div>
+
+  <div class="request-list" *ngIf="requests().length; else emptyBoard">
+    <div class="card" *ngFor="let request of requests()">
+      <div class="card-head">
+        <div>
+          <p class="muted">#{{ request.id }} · {{ request.createdAt | date: 'short' }}</p>
+          <h3>{{ request.assetName }}</h3>
+          <p class="muted">Submitted by {{ request.employeeName }}</p>
+        </div>
+        <span [class]="statusChip(request.status)">{{ request.status }}</span>
+      </div>
+      <p>{{ request.description }}</p>
+      <div class="attachments" *ngIf="request.assetPhoto">
+        <img [src]="request.assetPhoto" alt="Attachment" />
+        <span class="muted">{{ request.assetPhotoName || 'Employee upload' }}</span>
+      </div>
+
+      <div class="manager-tools" *ngIf="canReview(user, request)">
+        <label>
+          Assign technician
+          <select [ngModel]="reviewTechnician()" (ngModelChange)="reviewTechnician.set($event)" name="technician">
+            <option [ngValue]="undefined">Choose</option>
+            <option *ngFor="let tech of technicians" [ngValue]="tech.id">{{ tech.name }}</option>
+          </select>
+        </label>
+        <label>
+          Decision note
+          <textarea rows="2" [ngModel]="reviewNote()" (ngModelChange)="reviewNote.set($event)" name="managerNote"></textarea>
+        </label>
+        <div class="action-row">
+          <button type="button" (click)="approveRequest(request)">Approve</button>
+          <button type="button" class="ghost" (click)="rejectRequest(request)">Reject</button>
+        </div>
+      </div>
+
+      <div class="tech-tools" *ngIf="canComplete(user, request)">
+        <label>
+          Resolution note
+          <textarea
+            rows="2"
+            [ngModel]="technicianNotes()[request.id]?.note"
+            (ngModelChange)="updateTechNote(request.id, $event)"
+            [attr.name]="'techNote-' + request.id"
+          ></textarea>
+        </label>
+        <label>
+          Upload after-fix photo
+          <input type="file" accept="image/*" (change)="handleTechFile(request.id, $event)" />
+          <span class="muted" *ngIf="technicianNotes()[request.id]?.photoName">{{ technicianNotes()[request.id]?.photoName }}</span>
+        </label>
+        <button type="button" (click)="completeRequest(request)">Mark completed</button>
+      </div>
+
+      <div class="history" *ngIf="request.history?.length">
+        <p class="eyebrow">History</p>
+        <div class="history-entry" *ngFor="let item of request.history">
+          <span>{{ item.label }}</span>
+          <span class="muted">{{ item.at | date: 'short' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #emptyBoard>
+    <p class="muted">No requests in view yet. Create or approve one to populate your board.</p>
+  </ng-template>
+</section>
