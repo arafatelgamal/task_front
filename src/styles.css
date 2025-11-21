@@ -1,1 +1,128 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global theme tokens */
+:root {
+  --color-page-bg: #0b1320;
+  --color-layout: #f7f8fb;
+  --color-surface: #ffffff;
+  --color-surface-strong: #0f172a;
+  --color-surface-strong-alt: #111827;
+  --color-border: #e5e7eb;
+  --color-strong-border: #1f2937;
+  --color-text: #0b1320;
+  --color-text-contrast: #e5e7eb;
+  --color-muted: #6b7280;
+  --color-eyebrow: #5f6b7a;
+
+  --primary-start: #2563eb;
+  --primary-end: #1d4ed8;
+
+  --ghost-text: #e5e7eb;
+  --ghost-border: #1f2937;
+
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+
+  --badge-bg: #111827;
+  --panel-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+
+  --login-hero-bg: radial-gradient(circle at 18% 20%, rgba(96, 165, 250, 0.12), transparent 25%),
+    radial-gradient(circle at 82% 12%, rgba(147, 51, 234, 0.14), transparent 22%),
+    linear-gradient(145deg, #0b1220, #0a0f1a 55%, #0b1324);
+  --login-card-bg: #0f172a;
+  --login-card-border: #1f2937;
+  --login-form-bg: #0b1220;
+  --login-form-border: #1f2937;
+  --login-input-text: #f8fafc;
+  --login-muted-text: #cbd5e1;
+  --login-prefix: #94a3b8;
+  --login-button-start: #22d3ee;
+  --login-button-end: #6366f1;
+  --login-button-text: #0b1220;
+  --login-shadow: 0 30px 120px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+}
+
+body {
+  background: var(--color-page-bg);
+  color: var(--color-text);
+}
+
+body[data-theme='daylight'] {
+  --color-page-bg: #eef2ff;
+  --color-layout: #f9fafb;
+  --color-surface: #ffffff;
+  --color-surface-strong: #0ea5e9;
+  --color-surface-strong-alt: #0284c7;
+  --color-border: #e2e8f0;
+  --color-strong-border: #0ea5e9;
+  --color-text: #0f172a;
+  --color-text-contrast: #f8fafc;
+  --color-muted: #475569;
+  --color-eyebrow: #1e293b;
+
+  --primary-start: #0ea5e9;
+  --primary-end: #0284c7;
+
+  --ghost-text: #0f172a;
+  --ghost-border: #cbd5e1;
+
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+
+  --badge-bg: #0f172a;
+  --panel-shadow: 0 14px 48px rgba(8, 47, 73, 0.12);
+
+  --login-hero-bg: radial-gradient(circle at 16% 18%, rgba(14, 165, 233, 0.12), transparent 28%),
+    radial-gradient(circle at 84% 14%, rgba(56, 189, 248, 0.18), transparent 26%),
+    linear-gradient(135deg, #e0f2fe, #f8fafc 55%, #dbeafe);
+  --login-card-bg: #ffffff;
+  --login-card-border: #e2e8f0;
+  --login-form-bg: #f8fafc;
+  --login-form-border: #e2e8f0;
+  --login-input-text: #0f172a;
+  --login-muted-text: #475569;
+  --login-prefix: #0ea5e9;
+  --login-button-start: #0ea5e9;
+  --login-button-end: #6366f1;
+  --login-button-text: #0b1220;
+  --login-shadow: 0 26px 80px rgba(14, 165, 233, 0.12);
+}
+
+body[data-theme='forest'] {
+  --color-page-bg: #0b1612;
+  --color-layout: #0f2018;
+  --color-surface: #10271d;
+  --color-surface-strong: #0f172a;
+  --color-surface-strong-alt: #0b3b2e;
+  --color-border: #1f362a;
+  --color-strong-border: #14532d;
+  --color-text: #e2f3eb;
+  --color-text-contrast: #e2f3eb;
+  --color-muted: #9fb9aa;
+  --color-eyebrow: #8fd7b2;
+
+  --primary-start: #22c55e;
+  --primary-end: #16a34a;
+
+  --ghost-text: #e2f3eb;
+  --ghost-border: #1f362a;
+
+  --input-bg: #0f2018;
+  --input-border: #14532d;
+
+  --badge-bg: #052e16;
+  --panel-shadow: 0 12px 42px rgba(16, 185, 129, 0.18);
+
+  --login-hero-bg: radial-gradient(circle at 22% 20%, rgba(52, 211, 153, 0.12), transparent 24%),
+    radial-gradient(circle at 82% 12%, rgba(74, 222, 128, 0.12), transparent 20%),
+    linear-gradient(140deg, #0b1612, #0e2118 60%, #0a1b14);
+  --login-card-bg: #0f2018;
+  --login-card-border: #14532d;
+  --login-form-bg: #0c1a14;
+  --login-form-border: #14532d;
+  --login-input-text: #e2f3eb;
+  --login-muted-text: #9fb9aa;
+  --login-prefix: #34d399;
+  --login-button-start: #22c55e;
+  --login-button-end: #16a34a;
+  --login-button-text: #052e16;
+  --login-shadow: 0 24px 80px rgba(16, 185, 129, 0.14);
+}

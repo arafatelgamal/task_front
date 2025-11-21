@@ -10,6 +10,7 @@ import { UserManagementComponent } from './users/user-management.component';
 import { AuthService } from './services/auth.service';
 import { RequestBoardComponent } from './requests/request-board.component';
 import { RequestCreatePageComponent } from './requests/request-create-page.component';
+import { ThemeService, ThemeOptionId } from './services/theme.service';
 
 type AppView = 'dashboard' | 'requests' | 'create-request' | 'users' | 'notifications';
 
@@ -38,7 +39,11 @@ export class AppComponent implements OnInit {
   successMessage = signal('');
   mobileNavOpen = signal(false);
 
-  constructor(private readonly workflow: WorkflowService, private readonly auth: AuthService) {}
+  constructor(
+    private readonly workflow: WorkflowService,
+    private readonly auth: AuthService,
+    readonly themeService: ThemeService,
+  ) {}
 
   ngOnInit(): void {
     const existingUser = this.auth.restoreSession();
@@ -69,6 +74,9 @@ export class AppComponent implements OnInit {
       completed: requests.filter((r) => r.status === 'Completed').length,
     };
   });
+
+  themes = this.themeService.themes;
+  currentTheme = this.themeService.currentTheme;
 
   logout() {
     this.auth.logout();
@@ -128,6 +136,10 @@ export class AppComponent implements OnInit {
     this.handleSuccess(message);
     this.refreshRequestsForUser();
     this.activeView.set('requests');
+  }
+
+  setTheme(theme: ThemeOptionId) {
+    this.themeService.setTheme(theme);
   }
 
   private refreshRequestsForUser() {
