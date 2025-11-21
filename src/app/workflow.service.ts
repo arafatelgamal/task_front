@@ -210,7 +210,12 @@ export class WorkflowService {
   private loadUsersFromApi() {
     this.usersApi
       .getUsersList(undefined, 'AdminUser' satisfies UserTypeEnum)
-      .pipe(map((users) => users ?? []))
+      .pipe(
+        map((users) => {
+          if (Array.isArray(users)) return users;
+          return (users as { items?: UserDto[] })?.items ?? [];
+        }),
+      )
       .subscribe({
         next: (users) => {
           const mapped = users.map((user) => this.mapUserDto(user)).filter(Boolean) as UserAccount[];
