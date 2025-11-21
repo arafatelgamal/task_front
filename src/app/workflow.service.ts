@@ -105,7 +105,12 @@ export class WorkflowService {
     joinedDate?: string | Date;
     isActive?: boolean;
   }): UserAccount {
-    const normalizedRole: UserRole = user.role === 'technician' || user.role === 'employee' ? user.role : 'manager';
+    const roleFromApi = (user.role || '').toLowerCase();
+    const normalizedRole: UserRole = roleFromApi === 'technician'
+      ? 'technician'
+      : roleFromApi === 'employee'
+        ? 'employee'
+        : 'manager';
 
     const mappedUser: UserAccount = {
       id: user.id,
