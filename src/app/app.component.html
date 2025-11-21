@@ -9,19 +9,34 @@
 
   <!-- Authenticated experience -->
   <div class="layout" *ngIf="currentUser() as user">
-    <app-sidebar
-      [user]="user"
-      [activeView]="activeView()"
-      [endpoints]="endpointLabel(user.role)"
-      (viewChange)="switchView($event)"
-      (logout)="logout()"
-    />
+    <div class="sidebar-drawer" [class.open]="mobileNavOpen()">
+      <app-sidebar
+        [user]="user"
+        [activeView]="activeView()"
+        [endpoints]="endpointLabel(user.role)"
+        (viewChange)="switchView($event)"
+        (logout)="logout()"
+        (closeMenu)="closeMobileNav()"
+      />
+    </div>
+    <div class="scrim" *ngIf="mobileNavOpen()" (click)="closeMobileNav()"></div>
 
     <main>
       <header class="topbar">
-        <div>
-          <p class="eyebrow">Logged in as {{ user.role }}</p>
-          <h1>Facilities workflow console</h1>
+        <div class="topbar-left">
+          <button
+            type="button"
+            class="icon-button mobile-only"
+            aria-label="Open navigation"
+            [attr.aria-expanded]="mobileNavOpen()"
+            (click)="openMobileNav()"
+          >
+            ☰
+          </button>
+          <div>
+            <p class="eyebrow">Logged in as {{ user.role }}</p>
+            <h1>Facilities workflow console</h1>
+          </div>
         </div>
         <div class="stat-row">
           <div class="stat-card">

@@ -7,6 +7,7 @@ import {
   AddAdminUserCommand,
   AddAdminUserResultDto,
   GetUsersWithPaginationQuery,
+  RoleItemDto,
   UpdateUserCommand,
   UserDto,
   UserResponse,
@@ -16,6 +17,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly baseUrl = `${environment.apiUrl}/api/admin/users`;
+  private readonly rolesUrl = `${environment.apiUrl}/api/admin/roles`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -71,6 +73,12 @@ export class UserService {
 
     return this.http
       .get<ApiResponse<UserResponse> | UserResponse>(`${this.baseUrl}/paginated`, { params })
+      .pipe(map((response) => this.unwrap(response)));
+  }
+
+  getActiveInternalRoles() {
+    return this.http
+      .get<ApiResponse<RoleItemDto[]> | RoleItemDto[]>(`${this.rolesUrl}/active-internal`)
       .pipe(map((response) => this.unwrap(response)));
   }
 

@@ -37,6 +37,7 @@ export class AppComponent {
   activeView = signal<AppView>('dashboard');
   errorMessage = signal('');
   successMessage = signal('');
+  mobileNavOpen = signal(false);
 
   constructor(private readonly workflow: WorkflowService, private readonly auth: AuthService) {}
 
@@ -81,6 +82,7 @@ export class AppComponent {
     this.auth.logout();
     this.workflow.logout();
     this.activeView.set('dashboard');
+    this.mobileNavOpen.set(false);
   }
 
   handleAuthenticated(response: LoginAdminResponse) {
@@ -88,11 +90,13 @@ export class AppComponent {
     const user = this.workflow.setAuthenticatedAdmin(response.user);
     this.successMessage.set(`Welcome ${user.name}. Redirecting to your dashboard.`);
     this.activeView.set('dashboard');
+    this.mobileNavOpen.set(false);
   }
 
   switchView(view: AppView) {
     this.activeView.set(view);
     this.successMessage.set('');
+    this.mobileNavOpen.set(false);
   }
 
   handleCredentialsChange(credentials: LoginCredentials) {
@@ -213,6 +217,14 @@ export class AppComponent {
 
   archive(request: AssetRequest) {
     this.workflow.archiveRejected(request.id);
+  }
+
+  openMobileNav() {
+    this.mobileNavOpen.set(true);
+  }
+
+  closeMobileNav() {
+    this.mobileNavOpen.set(false);
   }
 
   statusChip(status: AssetRequest['status']) {

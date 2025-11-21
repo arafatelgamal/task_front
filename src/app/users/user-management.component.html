@@ -38,13 +38,10 @@
         </label>
         <label>
           Roles
-          <input
-            type="text"
-            placeholder="Comma separated role ids"
-            [ngModel]="adminForm().roles.join(', ')"
-            (ngModelChange)="updateRoles($event || '')"
-            name="roles"
-          />
+          <select name="roles" multiple [ngModel]="adminForm().roles" (ngModelChange)="updateRoles($event)">
+            <option *ngFor="let role of roles()" [ngValue]="role.value">{{ role.label }}</option>
+          </select>
+          <span class="muted helper">Select one or more internal roles</span>
         </label>
         <button type="submit">Create user</button>
       </form>

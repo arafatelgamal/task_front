@@ -27,6 +27,7 @@
   grid-template-columns: 280px 1fr;
   min-height: 100vh;
   background: #f7f8fb;
+  position: relative;
 }
 
 .sidebar {
@@ -37,6 +38,10 @@
   gap: 24px;
   align-content: start;
   border-right: 1px solid #111827;
+}
+
+.sidebar-drawer {
+  min-height: 100vh;
 }
 
 .brand {
@@ -117,6 +122,12 @@ main {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .topbar h1 {
@@ -394,6 +405,31 @@ textarea {
   color: #6b7280;
 }
 
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #0f172a;
+  color: #e5e7eb;
+  border: 1px solid #1f2937;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.mobile-only {
+  display: none;
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 9;
+}
+
 .user-layout {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -455,16 +491,60 @@ textarea {
   .layout {
     grid-template-columns: 1fr;
   }
+  .sidebar-drawer {
+    position: fixed;
+    inset: 0;
+    max-width: 320px;
+    width: 82%;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 10;
+  }
+  .sidebar-drawer.open {
+    transform: translateX(0);
+  }
   .sidebar {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    height: 100%;
+    overflow-y: auto;
+  }
+  .mobile-only {
+    display: inline-flex;
   }
   .topbar {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
+  .stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  main {
+    padding: 24px;
+  }
+  .panel {
+    padding: 18px;
+  }
   .request-layout,
   .user-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  main {
+    padding: 18px 14px 28px;
+  }
+  .topbar-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .stat-row {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  .panel-grid {
+    grid-template-columns: 1fr;
+  }
+  .action-grid {
+    flex-direction: column;
   }
 }
