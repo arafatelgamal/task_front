@@ -8,10 +8,10 @@ import { LoginAdminResponse, LoginCredentials } from './login/auth.models';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { UserManagementComponent } from './users/user-management.component';
 import { AuthService } from './services/auth.service';
-import { RequestFormComponent } from './requests/request-form.component';
 import { RequestBoardComponent } from './requests/request-board.component';
+import { RequestCreatePageComponent } from './requests/request-create-page.component';
 
-type AppView = 'dashboard' | 'requests' | 'users' | 'notifications';
+type AppView = 'dashboard' | 'requests' | 'create-request' | 'users' | 'notifications';
 
 @Component({
   selector: 'app-root',
@@ -23,8 +23,8 @@ type AppView = 'dashboard' | 'requests' | 'users' | 'notifications';
     LoginScreenComponent,
     SidebarComponent,
     UserManagementComponent,
-    RequestFormComponent,
     RequestBoardComponent,
+    RequestCreatePageComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
@@ -93,6 +93,11 @@ export class AppComponent implements OnInit {
       return;
     }
 
+    if (view === 'create-request' && user?.role !== 'employee') {
+      this.activeView.set('requests');
+      return;
+    }
+
     this.activeView.set(view);
     this.successMessage.set('');
     this.mobileNavOpen.set(false);
@@ -114,8 +119,15 @@ export class AppComponent implements OnInit {
   }
 
   handleNewRequest() {
+    this.activeView.set('create-request');
+    this.successMessage.set('');
+    this.errorMessage.set('');
+  }
+
+  handleRequestCreated(message: string) {
+    this.handleSuccess(message);
+    this.refreshRequestsForUser();
     this.activeView.set('requests');
-    setTimeout(() => document.getElementById('new-request-form')?.scrollIntoView({ behavior: 'smooth' }), 0);
   }
 
   private refreshRequestsForUser() {

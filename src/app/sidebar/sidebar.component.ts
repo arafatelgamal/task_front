@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { UserAccount } from '../models';
 
-export type SidebarView = 'dashboard' | 'requests' | 'users' | 'notifications';
+export type SidebarView = 'dashboard' | 'requests' | 'create-request' | 'users' | 'notifications';
 
 @Component({
   selector: 'app-sidebar',

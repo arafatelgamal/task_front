@@ -1,0 +1,14 @@
+.request-create {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+.request-create .panel-header {
+  align-items: flex-start;
+}
+
+.request-create .muted {
+  margin: 4px 0 0;
+}
