@@ -1,9 +1,9 @@
 .request-form {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--panel-shadow);
   width: 100%;
   max-width: 720px;
   display: grid;
@@ -12,7 +12,7 @@
 
 .request-form h3 {
   margin: 0;
-  color: #0b1320;
+  color: var(--color-text);
 }
 
 .request-form .form {
@@ -24,7 +24,7 @@
   display: grid;
   gap: 6px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--color-text);
 }
 
 .request-form input,
@@ -32,17 +32,19 @@
 .request-form select {
   width: 100%;
   border-radius: 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--input-border);
   padding: 12px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  background: var(--input-bg);
+  color: var(--color-text);
 }
 
 .request-form input:focus,
 .request-form textarea:focus,
 .request-form select:focus {
   outline: none;
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+  border-color: var(--primary-start);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-start) 30%, transparent);
 }
 
 .request-form .muted {

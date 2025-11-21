@@ -37,22 +37,30 @@
             <h1>Facilities workflow console</h1>
           </div>
         </div>
-        <div class="stat-row">
-          <div class="stat-card">
-            <p class="muted">Total</p>
-            <strong>{{ dashboardStats().total }}</strong>
-          </div>
-          <div class="stat-card warn">
-            <p class="muted">Pending</p>
-            <strong>{{ dashboardStats().pending }}</strong>
-          </div>
-          <div class="stat-card info">
-            <p class="muted">In progress</p>
-            <strong>{{ dashboardStats().inProgress }}</strong>
-          </div>
-          <div class="stat-card success">
-            <p class="muted">Completed</p>
-            <strong>{{ dashboardStats().completed }}</strong>
+        <div class="topbar-actions">
+          <label class="theme-switcher">
+            <span>Theme</span>
+            <select [ngModel]="currentTheme()" (ngModelChange)="setTheme($event)">
+              <option *ngFor="let theme of themes" [ngValue]="theme.id">{{ theme.label }}</option>
+            </select>
+          </label>
+          <div class="stat-row">
+            <div class="stat-card">
+              <p class="muted">Total</p>
+              <strong>{{ dashboardStats().total }}</strong>
+            </div>
+            <div class="stat-card warn">
+              <p class="muted">Pending</p>
+              <strong>{{ dashboardStats().pending }}</strong>
+            </div>
+            <div class="stat-card info">
+              <p class="muted">In progress</p>
+              <strong>{{ dashboardStats().inProgress }}</strong>
+            </div>
+            <div class="stat-card success">
+              <p class="muted">Completed</p>
+              <strong>{{ dashboardStats().completed }}</strong>
+            </div>
           </div>
         </div>
       </header>

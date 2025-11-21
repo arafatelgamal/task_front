@@ -1,9 +1,9 @@
 :host {
   display: block;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #0b1320;
+  background: var(--color-page-bg);
   min-height: 100vh;
-  color: #0b1320;
+  color: var(--color-text);
 }
 
 .app-shell {
@@ -14,30 +14,30 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 12px;
-  color: #5f6b7a;
+  color: var(--color-eyebrow);
   margin: 0 0 4px;
 }
 
 .muted {
-  color: #6b7280;
+  color: var(--color-muted);
 }
 
 .layout {
   display: grid;
   grid-template-columns: 280px 1fr;
   min-height: 100vh;
-  background: #f7f8fb;
+  background: var(--color-layout);
   position: relative;
 }
 
 .sidebar {
-  background: #0f172a;
-  color: #e5e7eb;
+  background: var(--color-surface-strong);
+  color: var(--color-text-contrast);
   padding: 24px;
   display: grid;
   gap: 24px;
   align-content: start;
-  border-right: 1px solid #111827;
+  border-right: 1px solid var(--color-strong-border);
 }
 
 .sidebar-drawer {
@@ -51,15 +51,15 @@
 }
 
 .profile-mini {
-  background: #111827;
-  border: 1px solid #1f2937;
+  background: var(--color-surface-strong-alt);
+  border: 1px solid var(--color-strong-border);
   border-radius: 16px;
   padding: 16px;
 }
 
 .profile-mini .name {
   margin: 0 0 4px;
-  color: #f8fafc;
+  color: var(--color-text-contrast);
   font-weight: 600;
 }
 
@@ -69,9 +69,9 @@
 }
 
 .nav button {
-  background: #111827;
-  border: 1px solid #1f2937;
-  color: #e5e7eb;
+  background: var(--color-surface-strong-alt);
+  border: 1px solid var(--color-strong-border);
+  color: var(--color-text-contrast);
   padding: 12px 14px;
   border-radius: 12px;
   text-align: left;
@@ -80,17 +80,17 @@
 }
 
 .nav button.active {
-  border-color: #60a5fa;
+  border-color: var(--primary-start);
   transform: translateX(4px);
 }
 
 .nav button:hover {
-  border-color: #334155;
+  border-color: var(--primary-end);
 }
 
 .endpoint-stack {
-  background: #111827;
-  border: 1px solid #1f2937;
+  background: var(--color-surface-strong-alt);
+  border: 1px solid var(--color-strong-border);
   border-radius: 16px;
   padding: 12px;
   display: grid;
@@ -103,14 +103,14 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #e5e7eb;
-  color: #111827;
+  background: var(--color-surface);
+  color: var(--color-text);
   font-size: 12px;
   font-weight: 600;
 }
 
 .main {
-  background: #f7f8fb;
+  background: var(--color-layout);
 }
 
 main {
@@ -132,7 +132,7 @@ main {
 
 .topbar h1 {
   margin: 4px 0 0;
-  color: #0b1320;
+  color: var(--color-text);
 }
 
 .stat-row {
@@ -141,9 +141,28 @@ main {
   gap: 12px;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.theme-switcher {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.theme-switcher select {
+  min-width: 170px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
 .stat-card {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 12px 14px;
   display: grid;
@@ -177,11 +196,11 @@ main {
 }
 
 .panel {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--panel-shadow);
 }
 
 .panel-header {
@@ -194,7 +213,7 @@ main {
 
 .panel h2 {
   margin: 0;
-  color: #0b1320;
+  color: var(--color-text);
 }
 
 .action-grid {
@@ -204,7 +223,7 @@ main {
 }
 
 button {
-  background: linear-gradient(120deg, #2563eb, #1d4ed8);
+  background: linear-gradient(120deg, var(--primary-start), var(--primary-end));
   color: white;
   border: none;
   padding: 10px 14px;
@@ -216,13 +235,13 @@ button {
 
 button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary-start) 25%, transparent);
 }
 
 button.ghost {
   background: transparent;
-  color: #0b1320;
-  border: 1px dashed #cbd5e1;
+  color: var(--ghost-text);
+  border: 1px dashed var(--ghost-border);
   box-shadow: none;
 }
 
@@ -239,25 +258,28 @@ button.full {
   display: grid;
   gap: 6px;
   font-size: 14px;
-  color: #0b1320;
+  color: var(--color-text);
 }
 
 input,
 textarea,
 select {
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--input-border);
   padding: 10px;
   border-radius: 10px;
   font-size: 14px;
-  background: white;
+  background: var(--input-bg);
+  color: var(--color-text);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: var(--primary-start);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-start) 30%, transparent);
 }
 
 textarea {
@@ -271,6 +293,10 @@ textarea {
   align-items: center;
 }
 
+.filter-row label {
+  flex: 1 1 220px;
+}
+
 .requests-page {
   display: block;
 }
@@ -280,11 +306,11 @@ textarea {
 }
 
 .card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 16px;
-  background: white;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  background: var(--color-surface);
+  box-shadow: var(--panel-shadow);
 }
 
 .card-head {
@@ -301,7 +327,7 @@ textarea {
 .attachments img {
   max-width: 120px;
   border-radius: 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
 }
 
 .manager-tools,
@@ -311,8 +337,8 @@ textarea {
   margin-top: 10px;
   padding: 10px;
   border-radius: 12px;
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
+  background: var(--color-layout);
+  border: 1px dashed var(--color-border);
 }
 
 .history {
@@ -326,7 +352,7 @@ textarea {
   justify-content: space-between;
   font-size: 13px;
   padding: 6px 0;
-  border-bottom: 1px dashed #e5e7eb;
+  border-bottom: 1px dashed var(--color-border);
 }
 
 .list {
@@ -336,7 +362,7 @@ textarea {
 
 .list.compact .list-item {
   padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .list-item {
@@ -350,8 +376,8 @@ textarea {
   display: inline-flex;
   align-items: center;
   padding: 6px 10px;
-  background: #111827;
-  color: white;
+  background: var(--badge-bg);
+  color: var(--color-text-contrast);
   border-radius: 10px;
   font-size: 12px;
   font-weight: 700;
@@ -370,7 +396,7 @@ textarea {
   padding: 6px 8px;
   border-radius: 10px;
   font-weight: 600;
-  color: #0b1320;
+  color: var(--color-text);
 }
 
 .chip.warn {
@@ -399,8 +425,8 @@ textarea {
 }
 
 .chip.muted {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--color-border);
+  color: var(--color-muted);
 }
 
 .icon-button {
@@ -410,9 +436,9 @@ textarea {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: #0f172a;
-  color: #e5e7eb;
-  border: 1px solid #1f2937;
+  background: var(--color-surface-strong);
+  color: var(--color-text-contrast);
+  border: 1px solid var(--color-strong-border);
   font-size: 18px;
   cursor: pointer;
 }
@@ -473,8 +499,8 @@ textarea {
 }
 
 .ghost.full {
-  color: #e5e7eb;
-  border-color: #1f2937;
+  color: var(--ghost-text);
+  border-color: var(--ghost-border);
 }
 
 .action-row {
@@ -512,6 +538,10 @@ textarea {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+  .topbar-actions {
+    width: 100%;
+    flex-direction: column;
   }
   .stat-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));

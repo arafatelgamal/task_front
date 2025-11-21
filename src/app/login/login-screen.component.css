@@ -1,9 +1,7 @@
 :host {
   display: block;
-  color: #e5e7eb;
-  background: radial-gradient(circle at 18% 20%, rgba(96, 165, 250, 0.12), transparent 25%),
-    radial-gradient(circle at 82% 12%, rgba(147, 51, 234, 0.14), transparent 22%),
-    linear-gradient(145deg, #0b1220, #0a0f1a 55%, #0b1324);
+  color: var(--login-input-text);
+  background: var(--login-hero-bg);
   padding: 120px 16px 80px;
 }
 
@@ -16,20 +14,21 @@
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   gap: 24px;
-  background: #0f172a;
-  border: 1px solid #1f2937;
+  background: var(--login-card-bg);
+  border: 1px solid var(--login-card-border);
   border-radius: 28px;
   padding: 32px;
-  box-shadow: 0 30px 120px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  box-shadow: var(--login-shadow);
 }
 
 .login-body h1 {
-  color: #f8fafc;
+  color: var(--login-input-text);
   margin: 4px 0 12px;
 }
 
 .login-body p {
   max-width: 520px;
+  color: var(--login-muted-text);
 }
 
 .quick-roles {
@@ -40,9 +39,13 @@
 }
 
 .quick-roles button {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.2));
-  border: 1px solid #334155;
-  color: #e5e7eb;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary-start) 22%, transparent),
+    color-mix(in srgb, var(--primary-end) 22%, transparent)
+  );
+  border: 1px solid var(--color-strong-border);
+  color: var(--color-text-contrast);
   padding: 10px 12px;
   border-radius: 12px;
   cursor: pointer;
@@ -51,13 +54,17 @@
 
 .quick-roles button:hover {
   transform: translateY(-1px);
-  border-color: #60a5fa;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(99, 102, 241, 0.25));
+  border-color: var(--primary-start);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary-start) 30%, transparent),
+    color-mix(in srgb, var(--primary-end) 30%, transparent)
+  );
 }
 
 .login-form {
-  background: #0b1220;
-  border: 1px solid #1f2937;
+  background: var(--login-form-bg);
+  border: 1px solid var(--login-form-border);
   border-radius: 20px;
   padding: 22px;
   display: grid;
@@ -68,37 +75,37 @@
 .field label {
   display: block;
   margin-bottom: 6px;
-  color: #cbd5e1;
+  color: var(--login-muted-text);
   font-weight: 600;
 }
 
 .input-wrap {
   display: flex;
   align-items: center;
-  background: #0d1525;
-  border: 1px solid #1f2937;
+  background: var(--login-form-bg);
+  border: 1px solid var(--login-form-border);
   border-radius: 12px;
   padding: 0 10px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .input-wrap:focus-within {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+  border-color: var(--primary-start);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-start) 30%, transparent);
 }
 
 .input-wrap input {
   flex: 1;
   background: transparent;
   border: none;
-  color: #f8fafc;
+  color: var(--login-input-text);
   padding: 12px 10px;
   outline: none;
   font-size: 15px;
 }
 
 .prefix {
-  color: #94a3b8;
+  color: var(--login-prefix);
   font-weight: 600;
 }
 
@@ -109,15 +116,15 @@
 .phone-input .country-code {
   flex: 0 0 80px;
   text-align: center;
-  border-right: 1px solid #1f2937;
+  border-right: 1px solid var(--login-form-border);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
 button.primary {
-  background: linear-gradient(120deg, #22d3ee, #6366f1);
+  background: linear-gradient(120deg, var(--login-button-start), var(--login-button-end));
   border: none;
-  color: #0b1220;
+  color: var(--login-button-text);
   font-weight: 700;
   padding: 14px;
   border-radius: 12px;
@@ -129,13 +136,13 @@ button.primary {
 
 button.primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--primary-end) 35%, transparent);
 }
 
 button.link {
   background: none;
   border: none;
-  color: #93c5fd;
+  color: var(--primary-start);
   cursor: pointer;
   padding: 0;
   text-decoration: underline;
@@ -145,8 +152,8 @@ button.link {
 .messages {
   border-radius: 12px;
   padding: 12px;
-  background: #0a162c;
-  border: 1px solid #1f2937;
+  background: color-mix(in srgb, var(--login-form-bg) 85%, transparent);
+  border: 1px solid var(--login-form-border);
   display: grid;
   gap: 6px;
 }
@@ -160,10 +167,10 @@ button.link {
 }
 
 code {
-  background: #111827;
+  background: var(--color-surface-strong-alt);
   padding: 2px 6px;
   border-radius: 8px;
-  color: #cbd5e1;
+  color: var(--color-text-contrast);
 }
 
 @media (max-width: 960px) {
