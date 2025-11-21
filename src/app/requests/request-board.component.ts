@@ -42,7 +42,7 @@ export class RequestBoardComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['user'] && this.user) {
-      const onlyMineDefault = this.user.role !== 'manager';
+      const onlyMineDefault = this.user.rolesNames !== 'manager';
       this.filters.update((current) => ({ ...current, onlyMine: onlyMineDefault }));
       this.refresh();
     }
@@ -161,10 +161,10 @@ export class RequestBoardComponent implements OnInit, OnChanges {
   }
 
   canReview(user: UserAccount, request: AssetRequest) {
-    return user.role === 'manager' && request.status === 'PendingReview';
+    return user.rolesNames === 'manager' && request.status === 'PendingReview';
   }
 
   canComplete(user: UserAccount, request: AssetRequest) {
-    return user.role === 'technician' && request.status === 'InProgress';
+    return user.rolesNames === 'technician' && request.status === 'InProgress';
   }
 }

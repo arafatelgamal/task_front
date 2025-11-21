@@ -1,89 +1,41 @@
 import { Injectable, signal } from '@angular/core';
-import { switchMap, tap } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs';
 import { AssetRequest, UserAccount, UserRole, WorkflowNotification } from './models';
-import { CompleteAssetRequestCommand, CreateAssetRequestCommand, GetAssetRequestsQuery, ReviewAssetRequestCommand, mapToAssetRequest } from './requests/asset-request.models';
+import {
+  CompleteAssetRequestCommand,
+  CreateAssetRequestCommand,
+  GetAssetRequestsQuery,
+  ReviewAssetRequestCommand,
+  mapToAssetRequest,
+} from './requests/asset-request.models';
 import { AssetRequestsService } from './services/asset-requests.service';
+import { NotificationsService } from './services/notifications.service';
+import { UserService } from './services/user.service';
 import { ApiResponse } from './shared/api-response';
+import { NotificationDto } from './notifications/notification-api.models';
+import { UserDto, UserTypeEnum } from './users/user-api.models';
 
 @Injectable({ providedIn: 'root' })
 export class WorkflowService {
-  private notificationId = 3;
-  private userId = 402;
+  private notificationId = 0;
+  private userId = 0;
   private lastRequestQuery: GetAssetRequestsQuery = { onlyMine: true };
 
-  private readonly seedUsers: UserAccount[] = [
-    {
-      id: 201,
-      name: 'Yousef Employee',
-      phoneNumber: '+966500000000',
-      email: 'yousef@example.com',
-      role: 'employee',
-      permissions: ['requests:create', 'notifications:view'],
-      status: 'Active',
-      password: 'Employee@12345',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 180),
-    },
-    {
-      id: 301,
-      name: 'Facilities Manager',
-      phoneNumber: '+966500000100',
-      email: 'manager@example.com',
-      role: 'manager',
-      permissions: ['requests:review', 'users:manage', 'notifications:view'],
-      status: 'Active',
-      password: 'Manager@12345',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 300),
-    },
-    {
-      id: 401,
-      name: 'Ali - HVAC',
-      phoneNumber: '+966500000001',
-      email: 'ali.hvac@example.com',
-      role: 'technician',
-      permissions: ['requests:complete', 'notifications:view'],
-      status: 'Active',
-      password: 'Tech@12345',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120),
-    },
-    {
-      id: 402,
-      name: 'Sara - Electrical',
-      phoneNumber: '+966500000002',
-      email: 'sara.electrical@example.com',
-      role: 'technician',
-      permissions: ['requests:complete', 'notifications:view'],
-      status: 'Active',
-      password: 'Tech@12345',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90),
-    },
-  ];
-
   currentUser = signal<UserAccount | null>(null);
-  users = signal<UserAccount[]>([...this.seedUsers]);
+  users = signal<UserAccount[]>([]);
   requests = signal<AssetRequest[]>([]);
-  notifications = signal<WorkflowNotification[]>([
-    {
-      id: 1,
-      audience: 'manager',
-      message: 'Pending approval: Office AC Unit',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 11),
-      relatedRequestId: 1,
-    },
-    {
-      id: 2,
-      audience: 'technician',
-      message: 'Sara - Electrical, you were assigned to 3D Printer',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 23),
-      relatedRequestId: 2,
-    },
-  ]);
+  notifications = signal<WorkflowNotification[]>([]);
 
-  constructor(private readonly assetRequests: AssetRequestsService) {}
+  constructor(
+    private readonly assetRequests: AssetRequestsService,
+    private readonly usersApi: UserService,
+    private readonly notificationsApi: NotificationsService,
+  ) {}
 
   login(phoneNumber: string, password: string): UserAccount {
     const user = this.users().find(
       (candidate) =>
-        candidate.phoneNumber === phoneNumber && candidate.password === password && candidate.status === 'Active'
+        candidate.phoneNumber === phoneNumber && candidate.password === password && candidate.isActive === true
     );
 
     if (!user) {
@@ -91,7 +43,7 @@ export class WorkflowService {
     }
 
     this.currentUser.set(user);
-    this.addNotification(user.role, `Signed in as ${user.name}.`, undefined);
+    this.addNotification(user.rolesNames, `Signed in as ${user.fullName}.`, undefined);
     return user;
   }
 
@@ -110,12 +62,12 @@ export class WorkflowService {
 
     const mappedUser: UserAccount = {
       id: user.id,
-      name: user.fullName || user.email || `Admin ${user.id}`,
+      fullName: user.fullName || user.email || `Admin ${user.id}`,
       phoneNumber: user.phoneNumber || '',
       email: user.email,
-      role: normalizedRole,
+      rolesNames: normalizedRole,
       permissions: user.permissions ?? [],
-      status: user.isActive === false ? 'Suspended' : 'Active',
+      isActive: user.isActive ??false,
       password: '',
       createdAt: user.joinedDate ? new Date(user.joinedDate) : new Date(),
     };
@@ -126,17 +78,28 @@ export class WorkflowService {
       this.users.set([...this.users(), mappedUser]);
     }
 
-    this.addNotification(mappedUser.role, `Signed in as ${mappedUser.name}.`, undefined);
+    this.addNotification(mappedUser.rolesNames, `Signed in as ${mappedUser.rolesNames}.`, undefined);
+    this.loadUsersFromApi();
+    this.loadNotifications();
     return mappedUser;
   }
 
-  private normalizeRole(user: { role?: string; userType?: string | number }): UserRole {
-    const roleFromApi = (user.role || '').trim().toLowerCase();
-    if (roleFromApi.includes('tech')) return 'technician';
-    if (roleFromApi.includes('employee')) return 'employee';
-    if (roleFromApi.includes('manager')) return 'manager';
+  private normalizeRole(
+    user: { role?: string; userType?: string | number; rolesNames?: string[]; roles?: number[] } | UserDto,
+  ): UserRole {
+    const roleNames = (user as { rolesNames?: string[] }).rolesNames || [];
+    const loweredRoles = roleNames.map((name) => name.trim().toLowerCase());
+    if (loweredRoles.some((name) => name.includes('tech'))) return 'technician';
+    if (loweredRoles.some((name) => name.includes('manager'))) return 'manager';
+    if (loweredRoles.some((name) => name.includes('employee'))) return 'employee';
 
-    const userType = `${user.userType ?? ''}`.trim();
+    const roleFromApi = (user as { role?: string }).role || '';
+    const loweredRoleFromApi = roleFromApi.trim().toLowerCase();
+    if (loweredRoleFromApi.includes('tech')) return 'technician';
+    if (loweredRoleFromApi.includes('employee')) return 'employee';
+    if (loweredRoleFromApi.includes('manager')) return 'manager';
+
+    const userType = `${(user as { userType?: string | number }).userType ?? ''}`.trim();
     if (userType === '2') return 'employee';
     if (userType === '3') return 'technician';
 
@@ -148,7 +111,8 @@ export class WorkflowService {
   }
 
   getTechnicians(): UserAccount[] {
-    return this.users().filter((user) => user.role === 'technician' && user.status === 'Active');
+    debugger
+    return this.users().filter((user) => user.rolesNames === 'technician' && user.isActive === true);
   }
 
   listUsers(): UserAccount[] {
@@ -157,16 +121,16 @@ export class WorkflowService {
 
   addUser(payload: Omit<UserAccount, 'id' | 'createdAt' | 'permissions'> & { permissions?: string[] }): UserAccount {
     const actor = this.currentUser();
-    if (!actor || actor.role !== 'manager') {
+    if (!actor || actor.rolesNames !== 'manager') {
       throw new Error('Only managers can create users.');
     }
 
     this.userId += 1;
     const permissions = payload.permissions?.length
       ? payload.permissions
-      : payload.role === 'manager'
+      : payload.rolesNames === 'manager'
         ? ['requests:review', 'users:manage', 'notifications:view']
-        : payload.role === 'technician'
+        : payload.rolesNames === 'technician'
           ? ['requests:complete', 'notifications:view']
           : ['requests:create', 'notifications:view'];
 
@@ -178,7 +142,7 @@ export class WorkflowService {
     };
 
     this.users.set([nextUser, ...this.users()]);
-    this.addNotification('manager', `${nextUser.name} was created.`, undefined);
+    this.addNotification('manager', `${nextUser.fullName} was created.`, undefined);
     return nextUser;
   }
 
@@ -244,7 +208,73 @@ export class WorkflowService {
     ]);
   }
 
+  private loadUsersFromApi() {
+    this.usersApi
+      .getUsersList(undefined, 'AdminUser' satisfies UserTypeEnum)
+      .pipe(
+        map((users) => {
+          if (Array.isArray(users)) return users;
+          return (users as { items?: UserDto[] })?.items ?? [];
+        }),
+      )
+      .subscribe({
+        next: (users) => {
+          const mapped = users.map((user) => this.mapUserDto(user)).filter(Boolean) as UserAccount[];
+          this.users.set(mapped);
+        },
+      });
+  }
+
+  private loadNotifications() {
+    this.notificationsApi
+      .getAdminNotifications({ pageNumber: 1, pageSize: 20, onlyUnread: false })
+      .pipe(map((response) => this.unwrap(response).items ?? []))
+      .subscribe({
+        next: (items) => {
+          const mapped = items.map((item) => this.mapNotification(item));
+          this.notificationId = Math.max(this.notificationId, ...mapped.map((n) => n.id), 0);
+          this.notifications.set(mapped);
+        },
+      });
+  }
+
+  private mapUserDto(user: UserDto): UserAccount {
+    const role = this.normalizeRole(user);
+    const permissions = this.derivePermissions(role);
+
+    this.userId = Math.max(this.userId, user.id);
+
+    return {
+      id: user.id,
+      fullName: user.fullName || user.email || `Admin ${user.id}`,
+      phoneNumber: user.phoneNumber || '',
+      email: user.email,
+      rolesNames: role,
+      permissions,
+      isActive: user.isActive,
+      password: '',
+      createdAt: user.joinedDate ? new Date(user.joinedDate) : new Date(),
+    };
+  }
+
+  private mapNotification(item: NotificationDto): WorkflowNotification {
+    const audience = this.currentUser()?.rolesNames ?? 'manager';
+    return {
+      id: item.id,
+      audience,
+      message: item.message || item.title || 'New notification',
+      createdAt: new Date(item.createdAt),
+      relatedRequestId: item.typeId ?? undefined,
+    };
+  }
+
   private unwrap<T>(response: ApiResponse<T> | T): T {
     return (response as ApiResponse<T>).data ?? (response as T);
+  }
+
+  private derivePermissions(role: UserRole): string[] {
+    if (role === 'manager') return ['requests:review', 'users:manage', 'notifications:view'];
+    if (role === 'technician') return ['requests:complete', 'notifications:view'];
+    return ['requests:create', 'notifications:view'];
   }
 }

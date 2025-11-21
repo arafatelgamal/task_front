@@ -62,7 +62,7 @@ export class AppComponent implements OnInit {
 
   myNotifications = computed(() => {
     const user = this.workflow.currentUser();
-    return user ? this.workflow.notifications().filter((n) => n.audience === user.role) : [];
+    return user ? this.workflow.notifications().filter((n) => n.audience === user.rolesNames) : [];
   });
 
   dashboardStats = computed(() => {
@@ -88,7 +88,7 @@ export class AppComponent implements OnInit {
   handleAuthenticated(response: LoginAdminResponse) {
     this.errorMessage.set('');
     const user = this.workflow.setAuthenticatedAdmin(response.user);
-    this.successMessage.set(`Welcome ${user.name}. Redirecting to your dashboard.`);
+    this.successMessage.set(`Welcome ${user.fullName}. Redirecting to your dashboard.`);
     this.activeView.set('dashboard');
     this.mobileNavOpen.set(false);
     this.refreshRequestsForUser();
@@ -96,12 +96,12 @@ export class AppComponent implements OnInit {
 
   switchView(view: AppView) {
     const user = this.workflow.currentUser();
-    if (view === 'users' && user?.role !== 'manager') {
+    if (view === 'users' && user?.rolesNames !== 'manager') {
       this.activeView.set('dashboard');
       return;
     }
 
-    if (view === 'create-request' && user?.role !== 'employee') {
+    if (view === 'create-request' && user?.rolesNames !== 'employee') {
       this.activeView.set('requests');
       return;
     }
@@ -146,7 +146,7 @@ export class AppComponent implements OnInit {
     const user = this.workflow.currentUser();
     if (!user) return;
 
-    const onlyMine = user.role !== 'manager';
+    const onlyMine = user.rolesNames !== 'manager';
     this.workflow.loadRequests({ onlyMine }).subscribe({
       error: (err) => this.handleError(err?.message ?? 'Unable to load requests'),
     });

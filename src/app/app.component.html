@@ -33,7 +33,7 @@
             ☰
           </button>
           <div>
-            <p class="eyebrow">Logged in as {{ user.role }}</p>
+            <p class="eyebrow">Logged in as {{ user.rolesNames }}</p>
             <h1>Facilities workflow console</h1>
           </div>
         </div>
@@ -74,8 +74,8 @@
             </div>
           </div>
           <div class="action-grid">
-            <button *ngIf="user.role === 'employee'" type="button" (click)="handleNewRequest()">Add asset request</button>
-            <button *ngIf="user.role === 'manager'" type="button" (click)="activeView.set('users')">Create user</button>
+            <button *ngIf="user.rolesNames === 'employee'" type="button" (click)="handleNewRequest()">Add asset request</button>
+            <button *ngIf="user.rolesNames === 'manager'" type="button" (click)="activeView.set('users')">Create user</button>
             <button type="button" (click)="activeView.set('notifications')">View notifications</button>
           </div>
         </article>
@@ -142,7 +142,7 @@
         />
       </section>
 
-      <app-user-management *ngIf="activeView() === 'users' && user.role === 'manager'" />
+      <app-user-management *ngIf="activeView() === 'users' && user.rolesNames === 'manager'" />
 
       <section *ngIf="activeView() === 'notifications'" class="panel">
         <div class="panel-header">

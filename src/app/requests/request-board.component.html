@@ -4,7 +4,7 @@
       <p class="eyebrow">Requests</p>
       <h2>Submit and manage tickets</h2>
     </div>
-    <button *ngIf="user.role === 'employee'" type="button" (click)="newRequest.emit()">Create request</button>
+    <button *ngIf="user.rolesNames === 'employee'" type="button" (click)="newRequest.emit()">Create request</button>
     <div class="filter-row">
       <label>
         Status
@@ -52,7 +52,7 @@
           Assign technician
           <select [ngModel]="reviewTechnician()" (ngModelChange)="reviewTechnician.set($event)" name="technician">
             <option [ngValue]="undefined">Choose</option>
-            <option *ngFor="let tech of technicians" [ngValue]="tech.id">{{ tech.name }}</option>
+            <option *ngFor="let tech of technicians" [ngValue]="tech.id">{{ tech.fullName }}</option>
           </select>
         </label>
         <label>
