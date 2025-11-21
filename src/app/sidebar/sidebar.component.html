@@ -28,9 +28,5 @@
       Notifications
     </button>
   </nav>
-  <div class="endpoint-stack" *ngIf="endpoints?.length">
-    <p class="muted">API touchpoints</p>
-    <div class="pill" *ngFor="let endpoint of endpoints">{{ endpoint }}</div>
-  </div>
   <button class="ghost full" type="button" (click)="handleLogout()">Logout</button>
 </aside>

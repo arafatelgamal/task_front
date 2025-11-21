@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { ApiResponse } from '../shared/api-response';
+import { delay, Observable, of, throwError } from 'rxjs';
 import {
+  ApiAssetRequestStatus,
   AssetRequestDto,
   AssetRequestListResponse,
   CompleteAssetRequestCommand,
@@ -15,45 +13,111 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class AssetRequestsService {
-  private readonly baseUrl = `${environment.apiUrl}/api/asset-requests`;
+  private requestId = 5;
+  private readonly requests: AssetRequestDto[] = [
+    {
+      id: 1,
+      assetName: 'Office AC Unit',
+      assetPhoto: '',
+      description: 'Repair fourth floor AC drip',
+      status: ApiAssetRequestStatus.PendingManagerReview,
+      employeeId: 201,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString(),
+    },
+    {
+      id: 2,
+      assetName: '3D Printer Calibration',
+      assetPhoto: '',
+      description: 'Lab printer alignment and cleaning',
+      status: ApiAssetRequestStatus.SentToTechnician,
+      employeeId: 201,
+      technicianId: 401,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 62).toISOString(),
+      managerDecisionAt: new Date(Date.now() - 1000 * 60 * 60 * 54).toISOString(),
+    },
+    {
+      id: 3,
+      assetName: 'Server room UPS',
+      assetPhoto: '',
+      description: 'Battery replacement needed',
+      status: ApiAssetRequestStatus.Completed,
+      employeeId: 301,
+      technicianId: 402,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 120).toISOString(),
+      closedAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+      technicianNote: 'Replaced battery pack and updated firmware.',
+    },
+    {
+      id: 4,
+      assetName: 'Lobby signage',
+      assetPhoto: '',
+      description: 'Digital signage flickers intermittently',
+      status: ApiAssetRequestStatus.Archived,
+      employeeId: 301,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 200).toISOString(),
+      closedAt: new Date(Date.now() - 1000 * 60 * 60 * 120).toISOString(),
+    },
+  ];
 
-  constructor(private readonly http: HttpClient) {}
+  create(payload: CreateAssetRequestCommand, employeeId = 201): Observable<CreateAssetRequestResultDto> {
+    this.requestId += 1;
+    const next: AssetRequestDto = {
+      id: this.requestId,
+      assetName: payload.assetName,
+      assetPhoto: '',
+      description: payload.description ?? '',
+      status: ApiAssetRequestStatus.PendingManagerReview,
+      employeeId,
+      createdAt: new Date().toISOString(),
+    };
 
-  create(payload: CreateAssetRequestCommand): Observable<ApiResponse<CreateAssetRequestResultDto>> {
-    const formData = new FormData();
-    formData.append('AssetName', payload.assetName);
-    formData.append('Description', payload.description ?? '');
+    this.requests.unshift(next);
+    return of({ id: next.id }).pipe(delay(200));
+  }
 
-    if (payload.assetPhoto) {
-      formData.append('AssetPhoto', payload.assetPhoto);
+  getList(query: GetAssetRequestsQuery): Observable<AssetRequestListResponse> {
+    let filtered = [...this.requests];
+    if (query.status) {
+      filtered = filtered.filter((req) => req.status === query.status);
     }
 
-    return this.http.post<ApiResponse<CreateAssetRequestResultDto>>(this.baseUrl, formData);
+    return of({ requests: filtered }).pipe(delay(180));
   }
 
-  getList(query: GetAssetRequestsQuery): Observable<ApiResponse<AssetRequestListResponse>> {
-    let params = new HttpParams();
-
-    if (query.pageNumber) params = params.set('PageNumber', query.pageNumber);
-    if (query.pageSize) params = params.set('PageSize', query.pageSize);
-    if (typeof query.status === 'number') params = params.set('Status', query.status);
-    if (typeof query.onlyMine === 'boolean') params = params.set('OnlyMine', query.onlyMine);
-
-    return this.http.get<ApiResponse<AssetRequestListResponse>>(this.baseUrl, { params });
+  getById(id: number): Observable<AssetRequestDto> {
+    const match = this.requests.find((req) => req.id === id);
+    if (!match) return throwError(() => new Error('Request not found'));
+    return of(match).pipe(delay(160));
   }
 
-  getById(id: number): Observable<ApiResponse<AssetRequestDto>> {
-    return this.http.get<ApiResponse<AssetRequestDto>>(`${this.baseUrl}/${id}`);
+  review(id: number, command: ReviewAssetRequestCommand): Observable<boolean> {
+    const index = this.requests.findIndex((req) => req.id === id);
+    if (index === -1) return throwError(() => new Error('Request not found'));
+
+    this.requests[index] = {
+      ...this.requests[index],
+      status: command.approve ? ApiAssetRequestStatus.SentToTechnician : ApiAssetRequestStatus.Archived,
+      managerDecisionNote: command.managerNote,
+      technicianId: command.technicianId,
+      managerDecisionAt: new Date().toISOString(),
+      closedAt: command.approve ? undefined : new Date().toISOString(),
+    };
+
+    return of(true).pipe(delay(220));
   }
 
-  review(id: number, command: ReviewAssetRequestCommand): Observable<ApiResponse<boolean | null>> {
-    return this.http.put<ApiResponse<boolean | null>>(`${this.baseUrl}/${id}/review`, command);
-  }
+  complete(id: number, command: CompleteAssetRequestCommand): Observable<boolean> {
+    const index = this.requests.findIndex((req) => req.id === id);
+    if (index === -1) return throwError(() => new Error('Request not found'));
 
-  complete(
-    id: number,
-    command: CompleteAssetRequestCommand
-  ): Observable<ApiResponse<boolean | null>> {
-    return this.http.put<ApiResponse<boolean | null>>(`${this.baseUrl}/${id}/complete`, command);
+    this.requests[index] = {
+      ...this.requests[index],
+      status: ApiAssetRequestStatus.Completed,
+      technicianNote: command.technicianNote,
+      technicianPhoto: command.technicianPhoto,
+      closedAt: new Date().toISOString(),
+    };
+
+    return of(true).pipe(delay(180));
   }
 }

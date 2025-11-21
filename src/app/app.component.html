@@ -1,4 +1,4 @@
-<div class="app-shell">
+<div class="app-shell" [ngClass]="themeClass()">
   <!-- Login screen -->
   <app-login-screen
     *ngIf="!currentUser()"
@@ -13,7 +13,6 @@
       <app-sidebar
         [user]="user"
         [activeView]="activeView()"
-        [endpoints]="endpointLabel(user.role)"
         (viewChange)="switchView($event)"
         (logout)="logout()"
         (closeMenu)="closeMobileNav()"
@@ -36,6 +35,19 @@
           <div>
             <p class="eyebrow">Logged in as {{ user.role }}</p>
             <h1>Facilities workflow console</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div class="pill subtle">Offline showcase · zero API calls</div>
+          <div class="theme-switcher" aria-label="Theme selector">
+            <button
+              *ngFor="let option of availableThemes"
+              type="button"
+              [class.active]="theme() === option.value"
+              (click)="changeTheme(option.value)"
+            >
+              {{ option.label }}
+            </button>
           </div>
         </div>
         <div class="stat-row">
@@ -65,7 +77,6 @@
               <p class="eyebrow">Quick actions</p>
               <h2>Start a flow</h2>
             </div>
-            <span class="pill">/api/asset-requests</span>
           </div>
           <div class="action-grid">
             <button *ngIf="user.role === 'employee'" type="button" (click)="handleNewRequest()">Add asset request</button>
@@ -80,7 +91,6 @@
               <p class="eyebrow">Recent requests</p>
               <h2>Workboard</h2>
             </div>
-            <span class="pill">/api/asset-requests (GET)</span>
           </div>
           <div class="list compact" *ngIf="recentRequests().length; else emptyBoard">
             <div class="list-item" *ngFor="let request of recentRequests() | slice:0:4">
@@ -103,7 +113,6 @@
               <p class="eyebrow">Timeline</p>
               <h2>Latest notifications</h2>
             </div>
-            <span class="pill">/api/admin/notifications/list</span>
           </div>
           <div class="list compact" *ngIf="myNotifications().length; else noNotes">
             <div class="list-item" *ngFor="let note of myNotifications() | slice:0:5">
@@ -146,7 +155,6 @@
             <p class="eyebrow">Live feed</p>
             <h2>Notifications</h2>
           </div>
-          <span class="pill">/api/admin/notifications</span>
         </div>
         <div class="list" *ngIf="myNotifications().length; else noNotifications">
           <div class="list-item" *ngFor="let note of myNotifications()">

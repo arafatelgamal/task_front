@@ -1,15 +1,17 @@
 .sidebar {
-  background: #0f172a;
-  color: #e5e7eb;
+  background: var(--surface);
+  color: var(--text);
   padding: 24px;
   display: grid;
   gap: 24px;
   align-content: start;
-  border-right: 1px solid #111827;
+  border-right: 1px solid var(--border);
+  min-height: 100vh;
+  box-shadow: var(--shadow-soft);
 }
 
 .brand {
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -22,15 +24,15 @@
 }
 
 .profile-mini {
-  background: #111827;
-  border: 1px solid #1f2937;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 16px;
 }
 
 .profile-mini .name {
   margin: 0 0 4px;
-  color: #f8fafc;
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -40,9 +42,9 @@
 }
 
 .nav button {
-  background: #111827;
-  border: 1px solid #1f2937;
-  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 12px 14px;
   border-radius: 12px;
   text-align: left;
@@ -51,21 +53,12 @@
 }
 
 .nav button.active {
-  border-color: #60a5fa;
+  border-color: var(--accent);
   transform: translateX(4px);
 }
 
 .nav button:hover {
-  border-color: #334155;
-}
-
-.endpoint-stack {
-  background: #111827;
-  border: 1px solid #1f2937;
-  border-radius: 16px;
-  padding: 12px;
-  display: grid;
-  gap: 8px;
+  border-color: var(--accent-2);
 }
 
 .pill {
@@ -74,39 +67,42 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #e5e7eb;
-  color: #111827;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
   font-size: 12px;
   font-weight: 600;
 }
 
 .ghost.full {
-  color: #e5e7eb;
-  border-color: #1f2937;
+  color: var(--text);
+  border-color: var(--border);
 }
 
 .muted {
-  color: #6b7280;
+  color: var(--muted);
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 6px 10px;
-  background: #111827;
-  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
   border-radius: 10px;
   font-size: 12px;
   font-weight: 700;
   text-transform: capitalize;
+  border: 1px solid var(--border);
 }
 
 .badge-dark {
-  background: #0ea5e9;
+  background: var(--info);
+  color: #0b1220;
 }
 
 .badge-info {
-  background: #10b981;
+  background: var(--success);
+  color: #0b1220;
 }
 
 @media (max-width: 1024px) {
@@ -117,8 +113,5 @@
   }
   .nav button.active {
     transform: none;
-  }
-  .endpoint-stack {
-    grid-template-columns: 1fr;
   }
 }

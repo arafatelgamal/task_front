@@ -3,7 +3,6 @@ import { switchMap, tap } from 'rxjs';
 import { AssetRequest, UserAccount, UserRole, WorkflowNotification } from './models';
 import { CompleteAssetRequestCommand, CreateAssetRequestCommand, GetAssetRequestsQuery, ReviewAssetRequestCommand, mapToAssetRequest } from './requests/asset-request.models';
 import { AssetRequestsService } from './services/asset-requests.service';
-import { ApiResponse } from './shared/api-response';
 
 @Injectable({ providedIn: 'root' })
 export class WorkflowService {
@@ -192,29 +191,50 @@ export class WorkflowService {
 
     return this.assetRequests.getList(merged).pipe(
       tap((response) => {
-        const payload = this.unwrap(response);
-        const mapped = payload.requests?.map(mapToAssetRequest) ?? [];
-        this.requests.set(mapped);
+        const payload = response.requests ?? [];
+        const mapped = payload.map(mapToAssetRequest);
+        const user = this.currentUser();
+        const filtered = this.filterForUser(mapped, merged, user);
+        this.requests.set(filtered);
       })
     );
   }
 
   createRequest(command: CreateAssetRequestCommand) {
-    return this.assetRequests
-      .create(command)
-      .pipe(switchMap(() => this.loadRequests(this.lastRequestQuery)));
+    const actor = this.currentUser();
+
+    return this.assetRequests.create(command, actor?.id).pipe(
+      switchMap(() => this.loadRequests({ ...this.lastRequestQuery, onlyMine: this.lastRequestQuery.onlyMine ?? false })),
+      tap(() => this.addNotification('manager', `${command.assetName} submitted for approval.`, undefined)),
+      tap(() => {
+        if (actor?.role === 'employee') {
+          this.addNotification('employee', `${command.assetName} submitted successfully.`, undefined);
+        }
+      })
+    );
   }
 
   reviewRequest(requestId: number, command: ReviewAssetRequestCommand) {
     return this.assetRequests
       .review(requestId, command)
-      .pipe(switchMap(() => this.loadRequests(this.lastRequestQuery)));
+      .pipe(
+        switchMap(() => this.loadRequests(this.lastRequestQuery)),
+        tap(() => {
+          const message = command.approve ? 'dispatched to technician' : 'rejected and archived';
+          this.addNotification('manager', `Request #${requestId} ${message}.`, requestId);
+          this.addNotification('technician', `Request #${requestId} ready for action.`, requestId);
+        })
+      );
   }
 
   completeRequest(requestId: number, command: CompleteAssetRequestCommand) {
     return this.assetRequests
       .complete(requestId, command)
-      .pipe(switchMap(() => this.loadRequests(this.lastRequestQuery)));
+      .pipe(
+        switchMap(() => this.loadRequests(this.lastRequestQuery)),
+        tap(() => this.addNotification('technician', `Request #${requestId} marked complete.`, requestId)),
+        tap(() => this.addNotification('manager', `Request #${requestId} marked complete.`, requestId))
+      );
   }
 
   archiveRejected(requestId: number): void {
@@ -244,7 +264,18 @@ export class WorkflowService {
     ]);
   }
 
-  private unwrap<T>(response: ApiResponse<T> | T): T {
-    return (response as ApiResponse<T>).data ?? (response as T);
+  private filterForUser(requests: AssetRequest[], query: GetAssetRequestsQuery, user: UserAccount | null) {
+    if (!user) return requests;
+    if (!query.onlyMine) return requests;
+
+    if (user.role === 'employee') {
+      return requests.filter((req) => req.createdByUserId === user.id || req.employeeName?.includes(`${user.id}`));
+    }
+
+    if (user.role === 'technician') {
+      return requests.filter((req) => req.technicianId === user.id);
+    }
+
+    return requests;
   }
 }

@@ -1,26 +1,26 @@
 import { Injectable, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { ApiResponse } from '../shared/api-response';
-import { AdminUserDto, LoginAdminResponse, LoginCredentials } from '../login/auth.models';
+import { delay, of, throwError } from 'rxjs';
+import { LoginAdminResponse, LoginCredentials, AdminUserDto } from '../login/auth.models';
+import { WorkflowService } from '../workflow.service';
+import { UserAccount } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly baseUrl = `${environment.apiUrl}/api/admin/auth`;
   readonly adminUser = signal<AdminUserDto | null>(null);
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly workflow: WorkflowService) {}
 
   login(credentials: LoginCredentials) {
     const phoneWithCountry = `${(credentials.countryCode || '').trim()}${(credentials.phoneNumber || '').trim()}`;
 
-    return this.http
-      .post<ApiResponse<LoginAdminResponse> | LoginAdminResponse>(`${this.baseUrl}/login`, {
-        phoneNumber: phoneWithCountry,
-        password: credentials.password,
-      })
-      .pipe(tap((response) => this.persistSession(this.unwrap(response))));
+    try {
+      const user = this.workflow.login(phoneWithCountry, credentials.password);
+      const response = this.buildAdminResponse(user);
+      this.persistSession(response);
+      return of(response).pipe(delay(250));
+    } catch (err: any) {
+      return throwError(() => new Error(err?.message || 'Unable to sign in.'));
+    }
   }
 
   logout() {
@@ -55,7 +55,22 @@ export class AuthService {
     }
   }
 
-  private unwrap<T>(response: ApiResponse<T> | T): T {
-    return (response as ApiResponse<T>).data ?? (response as T);
+  private buildAdminResponse(user: UserAccount): LoginAdminResponse {
+    const adminUser: AdminUserDto = {
+      id: user.id,
+      email: user.email || `${user.name.replace(/\s+/g, '.').toLowerCase()}@example.com`,
+      fullName: user.name,
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+      permissions: user.permissions,
+      joinedDate: user.createdAt.toISOString(),
+      isActive: user.status === 'Active',
+    };
+
+    return {
+      token: 'demo-token',
+      refreshToken: 'demo-refresh',
+      user: adminUser,
+    };
   }
 }
