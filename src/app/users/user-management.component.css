@@ -85,10 +85,38 @@
   width: min(540px, 100%);
 }
 
+.form-messages {
+  margin: 0 0 12px;
+}
+
+.form-messages .error {
+  margin: 0;
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.dialog-actions .loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.dialog-actions .loading::after {
+  content: '';
+  position: absolute;
+  right: -18px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .role-select {
@@ -114,5 +142,14 @@
 
   .action-buttons button {
     flex: 1 1 160px;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }

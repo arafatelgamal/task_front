@@ -15,6 +15,7 @@ export class UserManagementComponent implements OnInit {
   filters = signal<GetUsersWithPaginationQuery>({ pageNumber: 1, pageSize: 10, searchTerm: '', userType: 'AdminUser' });
   users = signal<UserDto[]>([]);
   loading = signal(false);
+  saving = signal(false);
   error = signal('');
   success = signal('');
   roles = signal<RoleItemDto[]>([]);
@@ -79,6 +80,7 @@ export class UserManagementComponent implements OnInit {
   submitAdmin() {
     this.error.set('');
     this.success.set('');
+    this.saving.set(true);
     const payload = this.adminForm();
 
     this.userService.addAdmin(payload).subscribe({
@@ -86,19 +88,25 @@ export class UserManagementComponent implements OnInit {
         this.success.set(`User ${payload.fullName || payload.email} created (id: ${response.userId}).`);
         this.adminForm.set({ email: '', fullName: '', phoneNumber: '', nationalId: '', password: 'Temp@12345', roles: [] });
         this.showCreateModal.set(false);
+        this.saving.set(false);
         this.loadUsers();
       },
       error: (err) => {
         this.error.set(err?.error?.message || 'Unable to add admin user.');
+        this.saving.set(false);
       },
     });
   }
 
   openCreateDialog() {
+    this.error.set('');
+    this.saving.set(false);
     this.showCreateModal.set(true);
   }
 
   closeCreateDialog() {
+    this.saving.set(false);
+    this.error.set('');
     this.showCreateModal.set(false);
   }
 

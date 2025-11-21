@@ -81,7 +81,7 @@
   </div>
 </section>
 
-<div class="dialog-backdrop" *ngIf="showCreateModal()" (click)="closeCreateDialog()">
+<div class="dialog-backdrop" *ngIf="showCreateModal()">
   <div class="dialog card" (click)="$event.stopPropagation()">
     <div class="panel-header">
       <div>
@@ -89,6 +89,9 @@
         <h3>New internal account</h3>
       </div>
       <button class="ghost" type="button" (click)="closeCreateDialog()">Close</button>
+    </div>
+    <div class="form-messages" *ngIf="error()">
+      <p class="error">{{ error() }}</p>
     </div>
     <form class="form" (ngSubmit)="submitAdmin()">
       <label>
@@ -132,14 +135,17 @@
         <span class="muted helper">Select one or more internal roles</span>
       </label>
       <div class="dialog-actions">
-        <button type="submit">Create user</button>
+        <button type="submit" [disabled]="saving()" [class.loading]="saving()">
+          <span *ngIf="saving()">Saving...</span>
+          <span *ngIf="!saving()">Create user</span>
+        </button>
         <button type="button" class="ghost" (click)="closeCreateDialog()">Cancel</button>
       </div>
     </form>
   </div>
 </div>
 
-<section class="system-messages" *ngIf="error() || success()">
+<section class="system-messages" *ngIf="(error() || success()) && !showCreateModal()">
   <p class="error" *ngIf="error()">{{ error() }}</p>
   <p class="success" *ngIf="success()">{{ success() }}</p>
 </section>
