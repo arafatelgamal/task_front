@@ -161,22 +161,4 @@ export class AppComponent implements OnInit {
     return map[status];
   }
 
-  endpointLabel(role: UserRole) {
-    const endpoints: Record<UserRole, string[]> = {
-      employee: ['/api/admin/auth/login', '/api/asset-requests (POST)', '/api/asset-requests?OnlyMine=true (GET)'],
-      manager: [
-        '/api/admin/auth/login',
-        '/api/asset-requests?Status=PendingReview (GET)',
-        '/api/asset-requests/{id}/review (PUT)',
-        '/api/admin/notifications/send (POST)',
-        '/api/admin/users/paginated (GET)',
-      ],
-      technician: [
-        '/api/admin/auth/login',
-        '/api/asset-requests?Status=SentToTechnician (GET)',
-        '/api/asset-requests/{id}/complete (PUT)',
-      ],
-    };
-    return endpoints[role];
-  }
 }

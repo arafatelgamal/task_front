@@ -13,7 +13,6 @@
       <app-sidebar
         [user]="user"
         [activeView]="activeView()"
-        [endpoints]="endpointLabel(user.role)"
         (viewChange)="switchView($event)"
         (logout)="logout()"
         (closeMenu)="closeMobileNav()"
@@ -65,7 +64,6 @@
               <p class="eyebrow">Quick actions</p>
               <h2>Start a flow</h2>
             </div>
-            <span class="pill">/api/asset-requests</span>
           </div>
           <div class="action-grid">
             <button *ngIf="user.role === 'employee'" type="button" (click)="handleNewRequest()">Add asset request</button>
@@ -80,7 +78,6 @@
               <p class="eyebrow">Recent requests</p>
               <h2>Workboard</h2>
             </div>
-            <span class="pill">/api/asset-requests (GET)</span>
           </div>
           <div class="list compact" *ngIf="recentRequests().length; else emptyBoard">
             <div class="list-item" *ngFor="let request of recentRequests() | slice:0:4">
@@ -103,7 +100,6 @@
               <p class="eyebrow">Timeline</p>
               <h2>Latest notifications</h2>
             </div>
-            <span class="pill">/api/admin/notifications/list</span>
           </div>
           <div class="list compact" *ngIf="myNotifications().length; else noNotes">
             <div class="list-item" *ngFor="let note of myNotifications() | slice:0:5">
@@ -146,7 +142,6 @@
             <p class="eyebrow">Live feed</p>
             <h2>Notifications</h2>
           </div>
-          <span class="pill">/api/admin/notifications</span>
         </div>
         <div class="list" *ngIf="myNotifications().length; else noNotifications">
           <div class="list-item" *ngFor="let note of myNotifications()">
