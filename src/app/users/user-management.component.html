@@ -61,7 +61,15 @@
               >
                 {{ isSuperAdmin(account) ? 'Protected account' : account.isActive ? 'Suspend' : 'Activate' }}
               </button>
-              <button class="ghost" type="button" (click)="deleteUser(account)">Delete</button>
+              <button
+                class="ghost"
+                type="button"
+                [disabled]="isSuperAdmin(account)"
+                [title]="isSuperAdmin(account) ? 'SuperAdmin accounts cannot be deleted' : ''"
+                (click)="deleteUser(account)"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

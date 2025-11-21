@@ -118,6 +118,11 @@ export class UserManagementComponent implements OnInit {
   }
 
   deleteUser(user: UserDto) {
+    if (this.isSuperAdmin(user)) {
+      this.error.set('SuperAdmin accounts cannot be deleted.');
+      return;
+    }
+
     this.userService.deleteUser(user.id).subscribe({
       next: () => {
         this.success.set(`User ${user.fullName || user.email} deleted.`);
