@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { UserAccount } from '../models';
 
-export type SidebarView = 'dashboard' | 'requests' | 'users' | 'notifications';
+export type SidebarView = 'dashboard' | 'requests' | 'create-request' | 'users' | 'notifications';
 
 @Component({
   selector: 'app-sidebar',
@@ -14,7 +14,6 @@ export type SidebarView = 'dashboard' | 'requests' | 'users' | 'notifications';
 export class SidebarComponent {
   @Input() activeView: SidebarView = 'dashboard';
   @Input() user: UserAccount | null = null;
-  @Input() endpoints: string[] = [];
 
   @Output() viewChange = new EventEmitter<SidebarView>();
   @Output() logout = new EventEmitter<void>();

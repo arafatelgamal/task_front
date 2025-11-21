@@ -13,7 +13,6 @@
       <app-sidebar
         [user]="user"
         [activeView]="activeView()"
-        [endpoints]="endpointLabel(user.role)"
         (viewChange)="switchView($event)"
         (logout)="logout()"
         (closeMenu)="closeMobileNav()"
@@ -65,10 +64,9 @@
               <p class="eyebrow">Quick actions</p>
               <h2>Start a flow</h2>
             </div>
-            <span class="pill">/api/asset-requests</span>
           </div>
           <div class="action-grid">
-            <button *ngIf="user.role === 'employee'" type="button" (click)="activeView.set('requests')">Add asset request</button>
+            <button *ngIf="user.role === 'employee'" type="button" (click)="handleNewRequest()">Add asset request</button>
             <button *ngIf="user.role === 'manager'" type="button" (click)="activeView.set('users')">Create user</button>
             <button type="button" (click)="activeView.set('notifications')">View notifications</button>
           </div>
@@ -80,7 +78,6 @@
               <p class="eyebrow">Recent requests</p>
               <h2>Workboard</h2>
             </div>
-            <span class="pill">/api/asset-requests (GET)</span>
           </div>
           <div class="list compact" *ngIf="recentRequests().length; else emptyBoard">
             <div class="list-item" *ngFor="let request of recentRequests() | slice:0:4">
@@ -103,7 +100,6 @@
               <p class="eyebrow">Timeline</p>
               <h2>Latest notifications</h2>
             </div>
-            <span class="pill">/api/admin/notifications/list</span>
           </div>
           <div class="list compact" *ngIf="myNotifications().length; else noNotes">
             <div class="list-item" *ngFor="let note of myNotifications() | slice:0:5">
@@ -120,22 +116,22 @@
         </article>
       </section>
 
-      <section *ngIf="activeView() === 'requests'" class="panel">
-        <div class="request-layout">
-          <app-request-form
-            *ngIf="user.role === 'employee'"
-            (submitted)="handleSuccess($event)"
-            (error)="handleError($event)"
-          />
+      <section *ngIf="activeView() === 'requests'" class="requests-page">
+        <app-request-board
+          [user]="user"
+          [technicians]="technicians()"
+          (success)="handleSuccess($event)"
+          (error)="handleError($event)"
+          (newRequest)="handleNewRequest()"
+        />
+      </section>
 
-          <app-request-board
-            [user]="user"
-            [technicians]="technicians()"
-            (success)="handleSuccess($event)"
-            (error)="handleError($event)"
-            (newRequest)="handleNewRequest()"
-          />
-        </div>
+      <section *ngIf="activeView() === 'create-request'" class="requests-page">
+        <app-request-create-page
+          (submitted)="handleRequestCreated($event)"
+          (error)="handleError($event)"
+          (back)="switchView('requests')"
+        />
       </section>
 
       <app-user-management *ngIf="activeView() === 'users' && user.role === 'manager'" />
@@ -146,7 +142,6 @@
             <p class="eyebrow">Live feed</p>
             <h2>Notifications</h2>
           </div>
-          <span class="pill">/api/admin/notifications</span>
         </div>
         <div class="list" *ngIf="myNotifications().length; else noNotifications">
           <div class="list-item" *ngFor="let note of myNotifications()">

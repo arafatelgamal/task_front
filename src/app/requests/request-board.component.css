@@ -1,3 +1,18 @@
+.request-board {
+  display: grid;
+  gap: 14px;
+}
+
+.request-board .panel-header {
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.request-board .panel-header > .filter-row {
+  margin-left: auto;
+}
+
 .request-list {
   display: grid;
   gap: 12px;

@@ -1,16 +1,55 @@
 .request-form {
-  background: #0c0c0c;
-  border: 1px solid #222;
-  border-radius: 8px;
-  padding: 16px;
-  min-width: 260px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  width: 100%;
+  max-width: 720px;
+  display: grid;
+  gap: 14px;
 }
 
 .request-form h3 {
-  margin-top: 0;
-  margin-bottom: 12px;
+  margin: 0;
+  color: #0b1320;
+}
+
+.request-form .form {
+  display: grid;
+  gap: 12px;
 }
 
 .request-form .form label {
-  display: block;
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.request-form input,
+.request-form textarea,
+.request-form select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  padding: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.request-form input:focus,
+.request-form textarea:focus,
+.request-form select:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+}
+
+.request-form .muted {
+  font-size: 13px;
+}
+
+.request-form button {
+  width: 100%;
+  justify-content: center;
 }

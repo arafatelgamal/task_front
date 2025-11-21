@@ -13,6 +13,14 @@
   <nav class="nav">
     <button type="button" [class.active]="activeView === 'dashboard'" (click)="changeView('dashboard')">Dashboard</button>
     <button type="button" [class.active]="activeView === 'requests'" (click)="changeView('requests')">Requests</button>
+    <button
+      type="button"
+      *ngIf="current.role === 'employee'"
+      [class.active]="activeView === 'create-request'"
+      (click)="changeView('create-request')"
+    >
+      Create request
+    </button>
     <button type="button" [class.active]="activeView === 'users'" (click)="changeView('users')" *ngIf="current.role === 'manager'">
       Users
     </button>
@@ -20,9 +28,5 @@
       Notifications
     </button>
   </nav>
-  <div class="endpoint-stack" *ngIf="endpoints?.length">
-    <p class="muted">API touchpoints</p>
-    <div class="pill" *ngFor="let endpoint of endpoints">{{ endpoint }}</div>
-  </div>
   <button class="ghost full" type="button" (click)="handleLogout()">Logout</button>
 </aside>

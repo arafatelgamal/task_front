@@ -232,7 +232,7 @@ button.full {
 
 .form {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .form label {
@@ -252,6 +252,14 @@ select {
   background: white;
 }
 
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
 textarea {
   resize: vertical;
 }
@@ -263,22 +271,12 @@ textarea {
   align-items: center;
 }
 
-.request-layout {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 16px;
+.requests-page {
+  display: block;
 }
 
-.request-form {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px;
-}
-
-.request-list {
-  display: grid;
-  gap: 12px;
+.requests-page .panel {
+  width: 100%;
 }
 
 .card {
@@ -524,7 +522,6 @@ textarea {
   .panel {
     padding: 18px;
   }
-  .request-layout,
   .user-layout {
     grid-template-columns: 1fr;
   }

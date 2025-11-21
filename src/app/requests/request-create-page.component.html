@@ -1,0 +1,12 @@
+<section class="panel request-create">
+  <div class="panel-header">
+    <div>
+      <p class="eyebrow">Requests</p>
+      <h2>Create a new asset request</h2>
+      <p class="muted">Share a clear description and photo so your manager can route it quickly.</p>
+    </div>
+    <button type="button" class="ghost" (click)="back.emit()">Back to board</button>
+  </div>
+
+  <app-request-form (submitted)="handleSubmitted($event)" (error)="error.emit($event)"></app-request-form>
+</section>

@@ -6,7 +6,7 @@ import { ApiAssetRequestStatus } from './asset-request.models';
 import { WorkflowService } from '../workflow.service';
 
 interface TechnicianNoteState {
-  [requestId: number]: { note?: string; photo?: string; photoName?: string };
+  [requestId: number]: { note?: string; photo?: string; photoName?: string } | undefined;
 }
 
 @Component({
