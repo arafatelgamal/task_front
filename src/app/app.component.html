@@ -138,7 +138,7 @@
         </div>
       </section>
 
-      <app-user-management *ngIf="activeView() === 'users'" />
+      <app-user-management *ngIf="activeView() === 'users' && user.role === 'manager'" />
 
       <section *ngIf="activeView() === 'notifications'" class="panel">
         <div class="panel-header">

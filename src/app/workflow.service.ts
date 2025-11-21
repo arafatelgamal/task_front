@@ -101,16 +101,12 @@ export class WorkflowService {
     email?: string;
     phoneNumber?: string;
     role?: string;
+    userType?: string | number;
     permissions?: string[];
     joinedDate?: string | Date;
     isActive?: boolean;
   }): UserAccount {
-    const roleFromApi = (user.role || '').toLowerCase();
-    const normalizedRole: UserRole = roleFromApi === 'technician'
-      ? 'technician'
-      : roleFromApi === 'employee'
-        ? 'employee'
-        : 'manager';
+    const normalizedRole = this.normalizeRole(user);
 
     const mappedUser: UserAccount = {
       id: user.id,
@@ -132,6 +128,19 @@ export class WorkflowService {
 
     this.addNotification(mappedUser.role, `Signed in as ${mappedUser.name}.`, undefined);
     return mappedUser;
+  }
+
+  private normalizeRole(user: { role?: string; userType?: string | number }): UserRole {
+    const roleFromApi = (user.role || '').trim().toLowerCase();
+    if (roleFromApi.includes('tech')) return 'technician';
+    if (roleFromApi.includes('employee')) return 'employee';
+    if (roleFromApi.includes('manager')) return 'manager';
+
+    const userType = `${user.userType ?? ''}`.trim();
+    if (userType === '2') return 'employee';
+    if (userType === '3') return 'technician';
+
+    return 'manager';
   }
 
   logout() {

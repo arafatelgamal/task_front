@@ -87,6 +87,12 @@ export class AppComponent implements OnInit {
   }
 
   switchView(view: AppView) {
+    const user = this.workflow.currentUser();
+    if (view === 'users' && user?.role !== 'manager') {
+      this.activeView.set('dashboard');
+      return;
+    }
+
     this.activeView.set(view);
     this.successMessage.set('');
     this.mobileNavOpen.set(false);
