@@ -1,84 +1,36 @@
 import { Injectable, signal } from '@angular/core';
-import { switchMap, tap } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs';
 import { AssetRequest, UserAccount, UserRole, WorkflowNotification } from './models';
-import { CompleteAssetRequestCommand, CreateAssetRequestCommand, GetAssetRequestsQuery, ReviewAssetRequestCommand, mapToAssetRequest } from './requests/asset-request.models';
+import {
+  CompleteAssetRequestCommand,
+  CreateAssetRequestCommand,
+  GetAssetRequestsQuery,
+  ReviewAssetRequestCommand,
+  mapToAssetRequest,
+} from './requests/asset-request.models';
 import { AssetRequestsService } from './services/asset-requests.service';
+import { NotificationsService } from './services/notifications.service';
+import { UserService } from './services/user.service';
 import { ApiResponse } from './shared/api-response';
+import { NotificationDto } from './notifications/notification-api.models';
+import { UserDto, UserTypeEnum } from './users/user-api.models';
 
 @Injectable({ providedIn: 'root' })
 export class WorkflowService {
-  private notificationId = 3;
-  private userId = 402;
+  private notificationId = 0;
+  private userId = 0;
   private lastRequestQuery: GetAssetRequestsQuery = { onlyMine: true };
 
-  private readonly seedUsers: UserAccount[] = [
-    {
-      id: 201,
-      name: 'Yousef Employee',
-      phoneNumber: '+966500000000',
-      email: 'yousef@example.com',
-      role: 'employee',
-      permissions: ['requests:create', 'notifications:view'],
-      status: 'Active',
-      password: 'Employee@12345',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 180),
-    },
-    {
-      id: 301,
-      name: 'Facilities Manager',
-      phoneNumber: '+966500000100',
-      email: 'manager@example.com',
-      role: 'manager',
-      permissions: ['requests:review', 'users:manage', 'notifications:view'],
-      status: 'Active',
-      password: 'Manager@12345',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 300),
-    },
-    {
-      id: 401,
-      name: 'Ali - HVAC',
-      phoneNumber: '+966500000001',
-      email: 'ali.hvac@example.com',
-      role: 'technician',
-      permissions: ['requests:complete', 'notifications:view'],
-      status: 'Active',
-      password: 'Tech@12345',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120),
-    },
-    {
-      id: 402,
-      name: 'Sara - Electrical',
-      phoneNumber: '+966500000002',
-      email: 'sara.electrical@example.com',
-      role: 'technician',
-      permissions: ['requests:complete', 'notifications:view'],
-      status: 'Active',
-      password: 'Tech@12345',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90),
-    },
-  ];
-
   currentUser = signal<UserAccount | null>(null);
-  users = signal<UserAccount[]>([...this.seedUsers]);
+  users = signal<UserAccount[]>([]);
   requests = signal<AssetRequest[]>([]);
-  notifications = signal<WorkflowNotification[]>([
-    {
-      id: 1,
-      audience: 'manager',
-      message: 'Pending approval: Office AC Unit',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 11),
-      relatedRequestId: 1,
-    },
-    {
-      id: 2,
-      audience: 'technician',
-      message: 'Sara - Electrical, you were assigned to 3D Printer',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 23),
-      relatedRequestId: 2,
-    },
-  ]);
+  notifications = signal<WorkflowNotification[]>([]);
 
-  constructor(private readonly assetRequests: AssetRequestsService) {}
+  constructor(
+    private readonly assetRequests: AssetRequestsService,
+    private readonly usersApi: UserService,
+    private readonly notificationsApi: NotificationsService,
+  ) {}
 
   login(phoneNumber: string, password: string): UserAccount {
     const user = this.users().find(
@@ -127,6 +79,8 @@ export class WorkflowService {
     }
 
     this.addNotification(mappedUser.role, `Signed in as ${mappedUser.name}.`, undefined);
+    this.loadUsersFromApi();
+    this.loadNotifications();
     return mappedUser;
   }
 
@@ -244,7 +198,68 @@ export class WorkflowService {
     ]);
   }
 
+  private loadUsersFromApi() {
+    this.usersApi
+      .getUsersList(undefined, 'AdminUser' satisfies UserTypeEnum)
+      .pipe(map((users) => users ?? []))
+      .subscribe({
+        next: (users) => {
+          const mapped = users.map((user) => this.mapUserDto(user)).filter(Boolean) as UserAccount[];
+          this.users.set(mapped);
+        },
+      });
+  }
+
+  private loadNotifications() {
+    this.notificationsApi
+      .getAdminNotifications({ pageNumber: 1, pageSize: 20, onlyUnread: false })
+      .pipe(map((response) => this.unwrap(response).items ?? []))
+      .subscribe({
+        next: (items) => {
+          const mapped = items.map((item) => this.mapNotification(item));
+          this.notificationId = Math.max(this.notificationId, ...mapped.map((n) => n.id), 0);
+          this.notifications.set(mapped);
+        },
+      });
+  }
+
+  private mapUserDto(user: UserDto): UserAccount {
+    const role = this.normalizeRole(user);
+    const permissions = this.derivePermissions(role);
+
+    this.userId = Math.max(this.userId, user.id);
+
+    return {
+      id: user.id,
+      name: user.fullName || user.email || `Admin ${user.id}`,
+      phoneNumber: user.phoneNumber || '',
+      email: user.email,
+      role,
+      permissions,
+      status: user.isActive === false ? 'Suspended' : 'Active',
+      password: '',
+      createdAt: user.joinedDate ? new Date(user.joinedDate) : new Date(),
+    };
+  }
+
+  private mapNotification(item: NotificationDto): WorkflowNotification {
+    const audience = this.currentUser()?.role ?? 'manager';
+    return {
+      id: item.id,
+      audience,
+      message: item.message || item.title || 'New notification',
+      createdAt: new Date(item.createdAt),
+      relatedRequestId: item.typeId ?? undefined,
+    };
+  }
+
   private unwrap<T>(response: ApiResponse<T> | T): T {
     return (response as ApiResponse<T>).data ?? (response as T);
+  }
+
+  private derivePermissions(role: UserRole): string[] {
+    if (role === 'manager') return ['requests:review', 'users:manage', 'notifications:view'];
+    if (role === 'technician') return ['requests:complete', 'notifications:view'];
+    return ['requests:create', 'notifications:view'];
   }
 }
