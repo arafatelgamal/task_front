@@ -14,7 +14,6 @@ export type SidebarView = 'dashboard' | 'requests' | 'create-request' | 'users' 
 export class SidebarComponent {
   @Input() activeView: SidebarView = 'dashboard';
   @Input() user: UserAccount | null = null;
-  @Input() endpoints: string[] = [];
 
   @Output() viewChange = new EventEmitter<SidebarView>();
   @Output() logout = new EventEmitter<void>();

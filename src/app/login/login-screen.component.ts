@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
-import { ApiResponse } from '../shared/api-response';
 import { LoginAdminResponse, LoginCredentials } from './auth.models';
 
 @Component({
@@ -35,19 +34,18 @@ export class LoginScreenComponent {
 
     this.auth.login(this.credentials).subscribe({
       next: (response) => {
-        const payload = (response as ApiResponse<LoginAdminResponse>).data ?? (response as LoginAdminResponse);
-        if (!payload || !payload.user) {
-          this.error = (response as ApiResponse<LoginAdminResponse>).message || 'Unexpected response from server.';
+        if (!response?.user) {
+          this.error = 'Unexpected response from local auth flow.';
           this.loading = false;
           return;
         }
 
-        this.success = `Welcome ${payload.user.fullName || payload.user.email || 'Admin'}.`;
-        this.authenticated.emit(payload as LoginAdminResponse);
+        this.success = `Welcome ${response.user.fullName || response.user.email || 'Admin'}.`;
+        this.authenticated.emit(response as LoginAdminResponse);
         this.loading = false;
       },
       error: (err) => {
-        this.error = err?.error?.message || 'Unable to sign in. Please check your credentials.';
+        this.error = err?.message || 'Unable to sign in. Please check your credentials.';
         this.loading = false;
       },
     });

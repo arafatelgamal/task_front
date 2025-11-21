@@ -1,8 +1,6 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { map } from 'rxjs';
-import { ApiResponse } from '../shared/api-response';
-import { environment } from '../../environments/environment';
+import { Injectable, signal } from '@angular/core';
+import { Observable, of, throwError } from 'rxjs';
+import { WorkflowService } from '../workflow.service';
 import {
   AddAdminUserCommand,
   AddAdminUserResultDto,
@@ -16,81 +14,106 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private readonly baseUrl = `${environment.apiUrl}/api/admin/users`;
-  private readonly rolesUrl = `${environment.apiUrl}/api/admin/roles`;
+  private readonly rolesCatalog: RoleItemDto[] = [
+    { value: 1, label: 'Facilities Manager' },
+    { value: 2, label: 'Technician' },
+    { value: 3, label: 'Employee' },
+  ];
 
-  constructor(private readonly http: HttpClient) {}
+  private users = signal<UserDto[]>(this.seedFromWorkflow());
 
-  addAdmin(command: AddAdminUserCommand) {
-    return this.http
-      .post<ApiResponse<AddAdminUserResultDto> | AddAdminUserResultDto>(`${this.baseUrl}/add-admin`, command)
-      .pipe(map((response) => this.unwrap(response)));
+  constructor(private readonly workflow: WorkflowService) {}
+
+  addAdmin(command: AddAdminUserCommand): Observable<AddAdminUserResultDto> {
+    const nextId = (this.users()[0]?.id ?? 400) + 1;
+    const rolesNames = this.rolesCatalog
+      .filter((role) => command.roles.includes(role.value))
+      .map((role) => role.label);
+
+    const newUser: UserDto = {
+      id: nextId,
+      email: command.email,
+      fullName: command.fullName,
+      phoneNumber: command.phoneNumber,
+      nationalId: command.nationalId,
+      rolesNames,
+      roles: command.roles,
+      joinedDate: new Date().toISOString(),
+      isActive: true,
+    };
+
+    this.users.set([newUser, ...this.users()]);
+    return of({ userId: nextId });
   }
 
-  getUserById(id: number) {
-    return this.http
-      .get<ApiResponse<UserDto> | UserDto>(`${this.baseUrl}/${id}`)
-      .pipe(map((response) => this.unwrap(response)));
+  getUserById(id: number): Observable<UserDto> {
+    const found = this.users().find((user) => user.id === id);
+    if (!found) return throwError(() => new Error('User not found'));
+    return of(found);
   }
 
-  updateUser(command: UpdateUserCommand) {
-    return this.http
-      .put<ApiResponse<UserDto> | UserDto>(`${this.baseUrl}/update`, command)
-      .pipe(map((response) => this.unwrap(response)));
+  updateUser(command: UpdateUserCommand): Observable<UserDto> {
+    const updatedUsers = this.users().map((user) => (user.id === command.id ? { ...user, ...command } : user));
+    const updated = updatedUsers.find((u) => u.id === command.id);
+    if (!updated) return throwError(() => new Error('User not found'));
+    this.users.set(updatedUsers as UserDto[]);
+    return of(updated);
   }
 
-  deleteUser(id: number) {
-    return this.http
-      .delete<ApiResponse<string> | string>(`${this.baseUrl}/${id}`)
-      .pipe(map((response) => this.unwrap(response)));
+  deleteUser(id: number): Observable<string> {
+    this.users.set(this.users().filter((user) => user.id !== id));
+    return of('Deleted');
   }
 
-  toggleUserStatus(command: { userId: number }) {
-    return this.http
-      .post<ApiResponse<string> | string>(`${this.baseUrl}/${command.userId}/toggle-status`, {})
-      .pipe(map((response) => this.unwrap(response)));
+  toggleUserStatus(command: { userId: number }): Observable<string> {
+    this.users.update((current) =>
+      current.map((user) =>
+        user.id === command.userId
+          ? {
+              ...user,
+              isActive: !user.isActive,
+            }
+          : user
+      )
+    );
+    return of('Toggled');
   }
 
-  getUsersList(searchTerm?: string, userType?: UserTypeEnum) {
-    let params = new HttpParams();
-    if (searchTerm) params = params.set('searchTerm', searchTerm);
-    if (userType) params = params.set('userType', userType);
-
-    return this.http
-      .get<ApiResponse<UserDto[]> | UserDto[]>(`${this.baseUrl}/list`, { params })
-      .pipe(map((response) => this.unwrap(response)));
+  getUsersList(searchTerm?: string, userType?: UserTypeEnum): Observable<UserDto[]> {
+    return of(this.filterUsers(searchTerm, userType));
   }
 
-  getUsersWithPagination(query: GetUsersWithPaginationQuery) {
-    let params = new HttpParams()
-      .set('pageNumber', query.pageNumber)
-      .set('pageSize', query.pageSize)
-      .set('userType', query.userType);
-
-    if (query.searchTerm) {
-      params = params.set('searchTerm', query.searchTerm);
-    }
-
-    return this.http
-      .get<ApiResponse<UserResponse> | UserResponse>(`${this.baseUrl}/paginated`, { params })
-      .pipe(map((response) => this.unwrap(response)));
+  getUsersWithPagination(query: GetUsersWithPaginationQuery): Observable<UserResponse> {
+    const filtered = this.filterUsers(query.searchTerm, query.userType);
+    return of({ items: filtered.slice(0, query.pageSize) });
   }
 
-  getActiveInternalRoles() {
-    return this.http
-      .get<ApiResponse<RoleItemDto[]> | RoleItemDto[]>(`${this.rolesUrl}/active-internal`)
-      .pipe(
-        map((response) => {
-          const raw = this.unwrap(response as ApiResponse<{ value?: RoleItemDto[] }> | RoleItemDto[] | { value?: RoleItemDto[] });
-          const roles = Array.isArray((raw as { value?: RoleItemDto[] })?.value)
-            ? (raw as { value?: RoleItemDto[] }).value
-            : (raw as RoleItemDto[]);
-          return (roles || []).filter((role) => role.label !== 'SuperAdmin');
-        }),
-      );
+  getActiveInternalRoles(): Observable<RoleItemDto[]> {
+    return of(this.rolesCatalog.filter((role) => role.label !== 'SuperAdmin'));
   }
 
-  private unwrap<T>(response: ApiResponse<T> | T): T {
-    return (response as ApiResponse<T>).data ?? (response as T);
+  private filterUsers(searchTerm?: string, _userType?: UserTypeEnum) {
+    const term = (searchTerm || '').toLowerCase();
+    const list = term
+      ? this.users().filter((user) =>
+          [user.email, user.fullName, user.phoneNumber].some((field) => (field || '').toLowerCase().includes(term))
+        )
+      : this.users();
+
+    return list;
+  }
+
+  private seedFromWorkflow(): UserDto[] {
+    return this.workflow.listUsers().map((user) => ({
+      id: user.id,
+      email: user.email || `${user.name.replace(/\s+/g, '.').toLowerCase()}@example.com`,
+      fullName: user.name,
+      phoneNumber: user.phoneNumber,
+      nationalId: '',
+      rolesNames: [user.role],
+      roles: [user.role === 'manager' ? 1 : user.role === 'technician' ? 2 : 3],
+      joinedDate: user.createdAt.toISOString(),
+      isActive: user.status === 'Active',
+    }));
   }
 }

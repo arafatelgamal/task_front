@@ -6,7 +6,6 @@
     </div>
     <div class="header-actions">
       <button type="button" (click)="openCreateDialog()">New admin</button>
-      <span class="pill">/api/admin/users/paginated</span>
     </div>
   </div>
 
@@ -15,7 +14,7 @@
       <div class="panel-header">
         <div>
           <p class="eyebrow">Existing users</p>
-          <h3>API backed</h3>
+          <h3>Local directory</h3>
         </div>
         <div class="filter-row">
           <label>
@@ -75,7 +74,7 @@
         </div>
       </div>
       <ng-template #noUsers>
-        <p class="muted">No accounts returned from the API yet.</p>
+        <p class="muted">No accounts available yet.</p>
       </ng-template>
     </div>
   </div>

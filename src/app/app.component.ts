@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, ViewEncapsulation, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AssetRequest, UserRole } from './models';
+import { AssetRequest } from './models';
 import { LoginScreenComponent } from './login/login-screen.component';
 import { WorkflowService } from './workflow.service';
 import { LoginAdminResponse, LoginCredentials } from './login/auth.models';
@@ -12,6 +12,8 @@ import { RequestBoardComponent } from './requests/request-board.component';
 import { RequestCreatePageComponent } from './requests/request-create-page.component';
 
 type AppView = 'dashboard' | 'requests' | 'create-request' | 'users' | 'notifications';
+
+type ThemeName = 'sunrise' | 'midnight' | 'emerald';
 
 @Component({
   selector: 'app-root',
@@ -37,6 +39,13 @@ export class AppComponent implements OnInit {
   errorMessage = signal('');
   successMessage = signal('');
   mobileNavOpen = signal(false);
+  theme = signal<ThemeName>('sunrise');
+
+  availableThemes: { label: string; value: ThemeName }[] = [
+    { label: 'Sunrise', value: 'sunrise' },
+    { label: 'Midnight', value: 'midnight' },
+    { label: 'Emerald', value: 'emerald' },
+  ];
 
   constructor(private readonly workflow: WorkflowService, private readonly auth: AuthService) {}
 
@@ -50,6 +59,8 @@ export class AppComponent implements OnInit {
   }
 
   currentUser = computed(() => this.workflow.currentUser());
+
+  themeClass = computed(() => `theme-${this.theme()}`);
 
   technicians = computed(() => this.workflow.getTechnicians());
 
@@ -130,6 +141,10 @@ export class AppComponent implements OnInit {
     this.activeView.set('requests');
   }
 
+  changeTheme(next: ThemeName) {
+    this.theme.set(next);
+  }
+
   private refreshRequestsForUser() {
     const user = this.workflow.currentUser();
     if (!user) return;
@@ -159,24 +174,5 @@ export class AppComponent implements OnInit {
       Archived: 'chip muted',
     };
     return map[status];
-  }
-
-  endpointLabel(role: UserRole) {
-    const endpoints: Record<UserRole, string[]> = {
-      employee: ['/api/admin/auth/login', '/api/asset-requests (POST)', '/api/asset-requests?OnlyMine=true (GET)'],
-      manager: [
-        '/api/admin/auth/login',
-        '/api/asset-requests?Status=PendingReview (GET)',
-        '/api/asset-requests/{id}/review (PUT)',
-        '/api/admin/notifications/send (POST)',
-        '/api/admin/users/paginated (GET)',
-      ],
-      technician: [
-        '/api/admin/auth/login',
-        '/api/asset-requests?Status=SentToTechnician (GET)',
-        '/api/asset-requests/{id}/complete (PUT)',
-      ],
-    };
-    return endpoints[role];
   }
 }
