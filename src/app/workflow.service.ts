@@ -84,13 +84,22 @@ export class WorkflowService {
     return mappedUser;
   }
 
-  private normalizeRole(user: { role?: string; userType?: string | number }): UserRole {
-    const roleFromApi = (user.role || '').trim().toLowerCase();
-    if (roleFromApi.includes('tech')) return 'technician';
-    if (roleFromApi.includes('employee')) return 'employee';
-    if (roleFromApi.includes('manager')) return 'manager';
+  private normalizeRole(
+    user: { role?: string; userType?: string | number; rolesNames?: string[]; roles?: number[] } | UserDto,
+  ): UserRole {
+    const roleNames = (user as { rolesNames?: string[] }).rolesNames || [];
+    const loweredRoles = roleNames.map((name) => name.trim().toLowerCase());
+    if (loweredRoles.some((name) => name.includes('tech'))) return 'technician';
+    if (loweredRoles.some((name) => name.includes('manager'))) return 'manager';
+    if (loweredRoles.some((name) => name.includes('employee'))) return 'employee';
 
-    const userType = `${user.userType ?? ''}`.trim();
+    const roleFromApi = (user as { role?: string }).role || '';
+    const loweredRoleFromApi = roleFromApi.trim().toLowerCase();
+    if (loweredRoleFromApi.includes('tech')) return 'technician';
+    if (loweredRoleFromApi.includes('employee')) return 'employee';
+    if (loweredRoleFromApi.includes('manager')) return 'manager';
+
+    const userType = `${(user as { userType?: string | number }).userType ?? ''}`.trim();
     if (userType === '2') return 'employee';
     if (userType === '3') return 'technician';
 
