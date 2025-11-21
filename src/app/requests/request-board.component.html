@@ -4,6 +4,7 @@
       <p class="eyebrow">Requests</p>
       <h2>Submit and manage tickets</h2>
     </div>
+    <button *ngIf="user.role === 'employee'" type="button" (click)="newRequest.emit()">Create request</button>
     <div class="filter-row">
       <label>
         Status

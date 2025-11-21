@@ -107,6 +107,11 @@ export class AppComponent implements OnInit {
     this.successMessage.set('');
   }
 
+  handleNewRequest() {
+    this.activeView.set('requests');
+    setTimeout(() => document.getElementById('new-request-form')?.scrollIntoView({ behavior: 'smooth' }), 0);
+  }
+
   private refreshRequestsForUser() {
     const user = this.workflow.currentUser();
     if (!user) return;

@@ -21,6 +21,7 @@ export class RequestBoardComponent implements OnInit, OnChanges {
   @Input() technicians: UserAccount[] = [];
   @Output() success = new EventEmitter<string>();
   @Output() error = new EventEmitter<string>();
+  @Output() newRequest = new EventEmitter<void>();
 
   filters = signal<{ status: ApiAssetRequestStatus | 'all'; onlyMine: boolean }>({
     status: 'all',
@@ -49,10 +50,12 @@ export class RequestBoardComponent implements OnInit, OnChanges {
 
   refresh() {
     this.isLoading.set(true);
+    const status = this.filters().status;
+    const normalizedStatus: ApiAssetRequestStatus | undefined = status === 'all' ? undefined : status;
     this.workflow
       .loadRequests({
         onlyMine: this.filters().onlyMine,
-        status: this.filters().status === 'all' ? undefined : this.filters().status,
+        status: normalizedStatus,
       })
       .subscribe({
         next: () => this.isLoading.set(false),
