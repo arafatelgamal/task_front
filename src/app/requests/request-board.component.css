@@ -1,0 +1,25 @@
+.request-list {
+  display: grid;
+  gap: 12px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.manager-tools,
+.tech-tools {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #1f1f1f;
+  border-radius: 8px;
+  background: #0d0d0d;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}

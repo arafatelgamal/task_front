@@ -1,17 +1,15 @@
 import { Injectable, signal } from '@angular/core';
-import {
-  AssetLifecycleStatus,
-  AssetRequest,
-  UserAccount,
-  UserRole,
-  WorkflowNotification,
-} from './models';
+import { switchMap, tap } from 'rxjs';
+import { AssetRequest, UserAccount, UserRole, WorkflowNotification } from './models';
+import { CompleteAssetRequestCommand, CreateAssetRequestCommand, GetAssetRequestsQuery, ReviewAssetRequestCommand, mapToAssetRequest } from './requests/asset-request.models';
+import { AssetRequestsService } from './services/asset-requests.service';
+import { ApiResponse } from './shared/api-response';
 
 @Injectable({ providedIn: 'root' })
 export class WorkflowService {
   private notificationId = 3;
-  private requestId = 2;
   private userId = 402;
+  private lastRequestQuery: GetAssetRequestsQuery = { onlyMine: true };
 
   private readonly seedUsers: UserAccount[] = [
     {
@@ -60,43 +58,9 @@ export class WorkflowService {
     },
   ];
 
-  private readonly seedRequests: AssetRequest[] = [
-    {
-      id: 1,
-      assetName: 'Office AC Unit',
-      assetPhoto:
-        'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=60',
-      description: 'The main meeting room AC is blowing warm air.',
-      status: 'PendingReview',
-      employeeName: 'Yousef Employee',
-      createdByUserId: 201,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12),
-      history: [
-        { label: 'Employee submitted request', at: new Date(Date.now() - 1000 * 60 * 60 * 12) },
-      ],
-    },
-    {
-      id: 2,
-      assetName: '3D Printer',
-      assetPhoto:
-        'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=60',
-      description: 'The printer nozzle is clogged and needs maintenance.',
-      status: 'InProgress',
-      employeeName: 'Laila External',
-      technicianId: 402,
-      technicianName: 'Sara - Electrical',
-      managerNote: 'Approved and routed to electrical technician.',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      history: [
-        { label: 'Employee submitted request', at: new Date(Date.now() - 1000 * 60 * 60 * 24) },
-        { label: 'Manager approved and assigned Sara', at: new Date(Date.now() - 1000 * 60 * 60 * 23) },
-      ],
-    },
-  ];
-
   currentUser = signal<UserAccount | null>(null);
   users = signal<UserAccount[]>([...this.seedUsers]);
-  requests = signal<AssetRequest[]>([...this.seedRequests]);
+  requests = signal<AssetRequest[]>([]);
   notifications = signal<WorkflowNotification[]>([
     {
       id: 1,
@@ -113,6 +77,8 @@ export class WorkflowService {
       relatedRequestId: 2,
     },
   ]);
+
+  constructor(private readonly assetRequests: AssetRequestsService) {}
 
   login(phoneNumber: string, password: string): UserAccount {
     const user = this.users().find(
@@ -135,11 +101,12 @@ export class WorkflowService {
     email?: string;
     phoneNumber?: string;
     role?: string;
+    userType?: string | number;
     permissions?: string[];
     joinedDate?: string | Date;
     isActive?: boolean;
   }): UserAccount {
-    const normalizedRole: UserRole = user.role === 'technician' || user.role === 'employee' ? user.role : 'manager';
+    const normalizedRole = this.normalizeRole(user);
 
     const mappedUser: UserAccount = {
       id: user.id,
@@ -161,6 +128,19 @@ export class WorkflowService {
 
     this.addNotification(mappedUser.role, `Signed in as ${mappedUser.name}.`, undefined);
     return mappedUser;
+  }
+
+  private normalizeRole(user: { role?: string; userType?: string | number }): UserRole {
+    const roleFromApi = (user.role || '').trim().toLowerCase();
+    if (roleFromApi.includes('tech')) return 'technician';
+    if (roleFromApi.includes('employee')) return 'employee';
+    if (roleFromApi.includes('manager')) return 'manager';
+
+    const userType = `${user.userType ?? ''}`.trim();
+    if (userType === '2') return 'employee';
+    if (userType === '3') return 'technician';
+
+    return 'manager';
   }
 
   logout() {
@@ -202,118 +182,39 @@ export class WorkflowService {
     return nextUser;
   }
 
-  createRequest(command: {
-    assetName: string;
-    assetPhoto?: string;
-    assetPhotoName?: string;
-    description?: string;
-  }): AssetRequest {
-    const user = this.currentUser();
-    if (!user || user.role !== 'employee') {
-      throw new Error('Only employees can add requests.');
-    }
-
-    this.requestId += 1;
-    const request: AssetRequest = {
-      id: this.requestId,
-      assetName: command.assetName,
-      assetPhoto: command.assetPhoto,
-      assetPhotoName: command.assetPhotoName,
-      description: command.description,
-      status: 'PendingReview',
-      employeeName: user.name,
-      createdByUserId: user.id,
-      createdAt: new Date(),
-      history: [
-        {
-          label: 'Employee submitted request',
-          at: new Date(),
-        },
-      ],
+  loadRequests(query?: GetAssetRequestsQuery) {
+    const merged: GetAssetRequestsQuery = {
+      ...this.lastRequestQuery,
+      ...query,
+      status: query?.status ?? this.lastRequestQuery.status,
     };
+    this.lastRequestQuery = merged;
 
-    this.requests.set([request, ...this.requests()]);
-    this.addNotification('manager', `New asset request: ${request.assetName}`, request.id);
-    return request;
+    return this.assetRequests.getList(merged).pipe(
+      tap((response) => {
+        const payload = this.unwrap(response);
+        const mapped = payload.requests?.map(mapToAssetRequest) ?? [];
+        this.requests.set(mapped);
+      })
+    );
   }
 
-  reviewRequest(
-    requestId: number,
-    action: 'approve' | 'reject',
-    payload: { technicianId?: number; managerNote?: string }
-  ): AssetRequest {
-    const user = this.currentUser();
-    if (!user || user.role !== 'manager') {
-      throw new Error('Only managers can review requests.');
-    }
-
-    const updated = this.requests().map((req) => {
-      if (req.id !== requestId) return req;
-
-      const historyEntry =
-        action === 'approve'
-          ? `Manager approved and assigned ${this.getTechnicianName(payload.technicianId)}`
-          : 'Manager rejected the request';
-
-      const nextStatus: AssetLifecycleStatus = action === 'approve' ? 'InProgress' : 'Rejected';
-      const assignedTech =
-        action === 'approve' && payload.technicianId
-          ? this.users().find((tech) => tech.id === payload.technicianId)
-          : undefined;
-
-      const nextRequest: AssetRequest = {
-        ...req,
-        status: nextStatus,
-        managerNote: payload.managerNote,
-        technicianId: assignedTech?.id,
-        technicianName: assignedTech?.name,
-        history: [...req.history, { label: historyEntry, at: new Date() }],
-      };
-
-      if (action === 'approve' && assignedTech) {
-        this.addNotification('technician', `${assignedTech.name}, you were assigned to ${req.assetName}.`, req.id);
-        this.addNotification('employee', `${req.assetName} approved. Technician ${assignedTech.name} will handle it.`, req.id);
-      } else if (action === 'reject') {
-        this.addNotification('employee', `${req.assetName} was rejected.`, req.id);
-      }
-
-      return nextRequest;
-    });
-
-    this.requests.set(updated);
-    return this.requests().find((x) => x.id === requestId)!;
+  createRequest(command: CreateAssetRequestCommand) {
+    return this.assetRequests
+      .create(command)
+      .pipe(switchMap(() => this.loadRequests(this.lastRequestQuery)));
   }
 
-  completeRequest(
-    requestId: number,
-    payload: { technicianPhoto?: string; technicianPhotoName?: string; technicianNote?: string }
-  ): AssetRequest {
-    const user = this.currentUser();
-    if (!user || user.role !== 'technician') {
-      throw new Error('Only technicians can complete requests.');
-    }
+  reviewRequest(requestId: number, command: ReviewAssetRequestCommand) {
+    return this.assetRequests
+      .review(requestId, command)
+      .pipe(switchMap(() => this.loadRequests(this.lastRequestQuery)));
+  }
 
-    const updated = this.requests().map((req) => {
-      if (req.id !== requestId) return req;
-
-      const nextRequest: AssetRequest = {
-        ...req,
-        status: 'Completed',
-        technicianNote: payload.technicianNote,
-        technicianPhoto: payload.technicianPhoto,
-        technicianPhotoName: payload.technicianPhotoName,
-        completedAt: new Date(),
-        history: [...req.history, { label: 'Technician completed work', at: new Date() }],
-      };
-
-      this.addNotification('manager', `${req.assetName} was completed by ${user.name}.`, req.id);
-      this.addNotification('employee', `${req.assetName} is now fixed.`, req.id);
-
-      return nextRequest;
-    });
-
-    this.requests.set(updated);
-    return this.requests().find((x) => x.id === requestId)!;
+  completeRequest(requestId: number, command: CompleteAssetRequestCommand) {
+    return this.assetRequests
+      .complete(requestId, command)
+      .pipe(switchMap(() => this.loadRequests(this.lastRequestQuery)));
   }
 
   archiveRejected(requestId: number): void {
@@ -343,9 +244,7 @@ export class WorkflowService {
     ]);
   }
 
-  private getTechnicianName(technicianId?: number): string {
-    return technicianId
-      ? this.users().find((x) => x.id === technicianId)?.name ?? 'technician'
-      : 'technician';
+  private unwrap<T>(response: ApiResponse<T> | T): T {
+    return (response as ApiResponse<T>).data ?? (response as T);
   }
 }

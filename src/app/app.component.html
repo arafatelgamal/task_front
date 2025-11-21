@@ -82,8 +82,8 @@
             </div>
             <span class="pill">/api/asset-requests (GET)</span>
           </div>
-          <div class="list compact" *ngIf="visibleRequests().length; else emptyBoard">
-            <div class="list-item" *ngFor="let request of visibleRequests() | slice:0:4">
+          <div class="list compact" *ngIf="recentRequests().length; else emptyBoard">
+            <div class="list-item" *ngFor="let request of recentRequests() | slice:0:4">
               <div>
                 <p class="muted">#{{ request.id }} · {{ request.createdAt | date: 'short' }}</p>
                 <strong>{{ request.assetName }}</strong>
@@ -121,149 +121,24 @@
       </section>
 
       <section *ngIf="activeView() === 'requests'" class="panel">
-        <div class="panel-header">
-          <div>
-            <p class="eyebrow">Requests</p>
-            <h2>Submit and manage tickets</h2>
-          </div>
-          <div class="filter-row">
-            <label>
-              Status
-              <select
-                [ngModel]="requestFilters().status"
-                (ngModelChange)="updateRequestFilter('status', $event)"
-                name="statusFilter"
-              >
-                <option value="all">All</option>
-                <option value="PendingReview">Pending review</option>
-                <option value="InProgress">In progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                [ngModel]="requestFilters().onlyMine"
-                (ngModelChange)="updateRequestFilter('onlyMine', $event)"
-                name="mine"
-              />
-              Only my requests
-            </label>
-          </div>
-        </div>
-
         <div class="request-layout">
-          <aside *ngIf="user.role === 'employee'" class="request-form">
-            <h3>New asset request</h3>
-            <form class="form" (ngSubmit)="submitRequest()">
-              <label>
-                Asset name
-                <input
-                  type="text"
-                  name="assetName"
-                  [ngModel]="newRequest().assetName"
-                  (ngModelChange)="updateNewRequest('assetName', $event)"
-                  placeholder="e.g., AC, printer"
-                />
-              </label>
-              <label>
-                Photo upload
-                <input type="file" accept="image/*" (change)="handleAssetFile($event)" />
-                <span class="muted" *ngIf="newRequest().assetPhotoName">{{ newRequest().assetPhotoName }}</span>
-              </label>
-              <label>
-                Description
-                <textarea
-                  name="description"
-                  rows="3"
-                  [ngModel]="newRequest().description"
-                  (ngModelChange)="updateNewRequest('description', $event)"
-                  placeholder="Describe the issue"
-                ></textarea>
-              </label>
-              <button type="submit">Submit</button>
-            </form>
-          </aside>
+          <app-request-form
+            *ngIf="user.role === 'employee'"
+            (submitted)="handleSuccess($event)"
+            (error)="handleError($event)"
+          />
 
-          <div class="request-list">
-            <div class="card" *ngFor="let request of visibleRequests()">
-              <div class="card-head">
-                <div>
-                  <p class="muted">#{{ request.id }} · {{ request.createdAt | date: 'short' }}</p>
-                  <h3>{{ request.assetName }}</h3>
-                  <p class="muted">Submitted by {{ request.employeeName }}</p>
-                </div>
-                <span [class]="statusChip(request.status)">{{ request.status }}</span>
-              </div>
-              <p>{{ request.description }}</p>
-              <div class="attachments" *ngIf="request.assetPhoto">
-                <img [src]="request.assetPhoto" alt="Attachment" />
-                <span class="muted">{{ request.assetPhotoName || 'Employee upload' }}</span>
-              </div>
-
-              <div class="manager-tools" *ngIf="user.role === 'manager' && request.status === 'PendingReview'">
-                <label>
-                  Assign technician
-                  <select
-                    [ngModel]="reviewTechnician()"
-                    (ngModelChange)="reviewTechnician.set($event)"
-                    name="technician"
-                  >
-                    <option [ngValue]="undefined">Choose</option>
-                    <option *ngFor="let tech of technicians()" [ngValue]="tech.id">{{ tech.name }}</option>
-                  </select>
-                </label>
-                <label>
-                  Decision note
-                  <textarea
-                    rows="2"
-                    [ngModel]="reviewNote()"
-                    (ngModelChange)="reviewNote.set($event)"
-                    name="managerNote"
-                  ></textarea>
-                </label>
-                <div class="action-row">
-                  <button type="button" (click)="approveRequest(request)">Approve</button>
-                  <button type="button" class="ghost" (click)="rejectRequest(request)">Reject</button>
-                </div>
-              </div>
-
-              <div class="tech-tools" *ngIf="user.role === 'technician' && request.status === 'InProgress'">
-                <label>
-                  Resolution note
-                  <textarea
-                    rows="2"
-                    [ngModel]="technicianNotes()[request.id]?.note"
-                    (ngModelChange)="updateTechNote(request.id, 'note', $event)"
-                    [attr.name]="'techNote-' + request.id"
-                  ></textarea>
-                </label>
-                <label>
-                  Upload after-fix photo
-                  <input type="file" accept="image/*" (change)="handleTechFile(request.id, $event)" />
-                  <span class="muted" *ngIf="technicianNotes()[request.id]?.photoName">{{ technicianNotes()[request.id]?.photoName }}</span>
-                </label>
-                <button type="button" (click)="completeRequest(request)">Mark completed</button>
-              </div>
-
-              <div class="history">
-                <p class="eyebrow">History</p>
-                <div class="history-entry" *ngFor="let item of request.history">
-                  <span>{{ item.label }}</span>
-                  <span class="muted">{{ item.at | date: 'short' }}</span>
-                </div>
-              </div>
-
-              <div class="ticket-actions" *ngIf="request.status === 'Rejected' && user.role === 'manager'">
-                <button class="ghost" type="button" (click)="archive(request)">Archive rejection</button>
-              </div>
-            </div>
-          </div>
+          <app-request-board
+            [user]="user"
+            [technicians]="technicians()"
+            (success)="handleSuccess($event)"
+            (error)="handleError($event)"
+            (newRequest)="handleNewRequest()"
+          />
         </div>
       </section>
 
-      <app-user-management *ngIf="activeView() === 'users'" />
+      <app-user-management *ngIf="activeView() === 'users' && user.role === 'manager'" />
 
       <section *ngIf="activeView() === 'notifications'" class="panel">
         <div class="panel-header">

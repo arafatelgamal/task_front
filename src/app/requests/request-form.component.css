@@ -1,0 +1,16 @@
+.request-form {
+  background: #0c0c0c;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 260px;
+}
+
+.request-form h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.request-form .form label {
+  display: block;
+}
