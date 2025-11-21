@@ -79,7 +79,15 @@ export class UserService {
   getActiveInternalRoles() {
     return this.http
       .get<ApiResponse<RoleItemDto[]> | RoleItemDto[]>(`${this.rolesUrl}/active-internal`)
-      .pipe(map((response) => this.unwrap(response)));
+      .pipe(
+        map((response) => {
+          const raw = this.unwrap(response as ApiResponse<{ value?: RoleItemDto[] }> | RoleItemDto[] | { value?: RoleItemDto[] });
+          const roles = Array.isArray((raw as { value?: RoleItemDto[] })?.value)
+            ? (raw as { value?: RoleItemDto[] }).value
+            : (raw as RoleItemDto[]);
+          return (roles || []).filter((role) => role.label !== 'SuperAdmin');
+        }),
+      );
   }
 
   private unwrap<T>(response: ApiResponse<T> | T): T {

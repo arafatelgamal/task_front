@@ -39,20 +39,30 @@
 
       <div *ngIf="loading()" class="muted">Loading users...</div>
       <div class="list compact" *ngIf="!loading() && users().length; else noUsers">
-        <div class="list-item" *ngFor="let account of users()">
-          <div>
+        <div class="list-item user-row" *ngFor="let account of users()">
+          <div class="user-main">
             <strong>{{ account.fullName || account.email }}</strong>
             <p class="muted">{{ account.email || account.phoneNumber }}</p>
             <p class="muted">Joined {{ account.joinedDate | date: 'mediumDate' }}</p>
-            <p class="muted">Roles: {{ roleLabel(account) }}</p>
+            <p class="muted roles-line">Roles: {{ roleLabel(account) }}</p>
           </div>
-          <div class="user-tags">
-            <span class="badge" [class.badge-dark]="account.rolesNames.length">{{ account.rolesNames[0] || 'Admin' }}</span>
-            <span class="chip" [class.muted]="!account.isActive">{{ currentStatus(account) }}</span>
-            <button class="ghost" type="button" (click)="toggleUser(account)">
-              {{ account.isActive ? 'Suspend' : 'Activate' }}
-            </button>
-            <button class="ghost" type="button" (click)="deleteUser(account)">Delete</button>
+          <div class="user-actions">
+            <div class="user-tags">
+              <span class="badge" [class.badge-dark]="account.rolesNames.length">{{ account.rolesNames[0] || 'Admin' }}</span>
+              <span class="chip" [class.muted]="!account.isActive">{{ currentStatus(account) }}</span>
+            </div>
+            <div class="action-buttons">
+              <button
+                class="ghost"
+                type="button"
+                [disabled]="isSuperAdmin(account)"
+                [title]="isSuperAdmin(account) ? 'SuperAdmin status cannot be changed' : ''"
+                (click)="toggleUser(account)"
+              >
+                {{ isSuperAdmin(account) ? 'Protected account' : account.isActive ? 'Suspend' : 'Activate' }}
+              </button>
+              <button class="ghost" type="button" (click)="deleteUser(account)">Delete</button>
+            </div>
           </div>
         </div>
       </div>

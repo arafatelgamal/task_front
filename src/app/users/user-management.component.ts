@@ -103,6 +103,11 @@ export class UserManagementComponent implements OnInit {
   }
 
   toggleUser(user: UserDto) {
+    if (this.isSuperAdmin(user)) {
+      this.error.set('SuperAdmin accounts cannot be disabled.');
+      return;
+    }
+
     this.userService.toggleUserStatus({ userId: user.id }).subscribe({
       next: () => {
         this.success.set(`User ${user.fullName || user.email} is now ${user.isActive ? 'inactive' : 'active'}.`);
@@ -128,6 +133,10 @@ export class UserManagementComponent implements OnInit {
 
   currentStatus(user: UserDto) {
     return user.isActive ? 'Active' : 'Suspended';
+  }
+
+  isSuperAdmin(user: UserDto) {
+    return (user.rolesNames || []).some((role) => role.toLowerCase() === 'superadmin');
   }
 
   userTypes(): UserTypeEnum[] {
