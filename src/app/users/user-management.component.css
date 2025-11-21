@@ -20,6 +20,12 @@
   flex-wrap: wrap;
 }
 
+.helper {
+  display: block;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 @media (max-width: 1024px) {
   .user-layout {
     grid-template-columns: 1fr;

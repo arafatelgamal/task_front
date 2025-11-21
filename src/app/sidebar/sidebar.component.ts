@@ -18,12 +18,15 @@ export class SidebarComponent {
 
   @Output() viewChange = new EventEmitter<SidebarView>();
   @Output() logout = new EventEmitter<void>();
+  @Output() closeMenu = new EventEmitter<void>();
 
   changeView(view: SidebarView) {
     this.viewChange.emit(view);
+    this.closeMenu.emit();
   }
 
   handleLogout() {
     this.logout.emit();
+    this.closeMenu.emit();
   }
 }

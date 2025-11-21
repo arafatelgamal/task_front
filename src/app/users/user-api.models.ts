@@ -51,3 +51,8 @@ export interface UserDto {
   joinedDate: string;
   isActive: boolean;
 }
+
+export interface RoleItemDto {
+  value: number;
+  label: string;
+}

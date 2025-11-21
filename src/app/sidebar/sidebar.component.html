@@ -1,5 +1,8 @@
 <aside class="sidebar" *ngIf="user as current">
-  <div class="brand">Asset Desk</div>
+  <div class="brand-row">
+    <div class="brand">Asset Desk</div>
+    <button class="icon-button ghost mobile-only" type="button" aria-label="Close menu" (click)="closeMenu.emit()">✕</button>
+  </div>
   <div class="profile-mini">
     <p class="name">{{ current.name }}</p>
     <p class="muted">{{ current.email || current.phoneNumber }}</p>

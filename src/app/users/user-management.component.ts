@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../services/user.service';
-import { AddAdminUserCommand, GetUsersWithPaginationQuery, UserDto, UserTypeEnum } from './user-api.models';
+import { AddAdminUserCommand, GetUsersWithPaginationQuery, RoleItemDto, UserDto, UserTypeEnum } from './user-api.models';
 
 @Component({
   selector: 'app-user-management',
@@ -17,6 +17,7 @@ export class UserManagementComponent implements OnInit {
   loading = signal(false);
   error = signal('');
   success = signal('');
+  roles = signal<RoleItemDto[]>([]);
 
   adminForm = signal<AddAdminUserCommand>({
     email: '',
@@ -31,6 +32,7 @@ export class UserManagementComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUsers();
+    this.loadRoles();
   }
 
   loadUsers() {
@@ -48,6 +50,13 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
+  loadRoles() {
+    this.userService.getActiveInternalRoles().subscribe({
+      next: (roles) => this.roles.set(roles ?? []),
+      error: (err) => this.error.set(err?.error?.message || 'Unable to load roles.'),
+    });
+  }
+
   updateFilter(field: keyof GetUsersWithPaginationQuery, value: any) {
     this.filters.set({ ...this.filters(), [field]: value });
     this.loadUsers();
@@ -57,11 +66,10 @@ export class UserManagementComponent implements OnInit {
     this.adminForm.set({ ...this.adminForm(), [field]: value });
   }
 
-  updateRoles(value: string) {
-    const roles = value
-      .split(',')
-      .map((role) => role.trim())
-      .filter((role) => !!role)
+  updateRoles(value: number[] | string[]) {
+    const selectedRoles = (value || []) as (number | string)[];
+    const roles = selectedRoles
+      .filter((role) => role !== null && role !== undefined && role !== '')
       .map((role) => Number(role));
 
     this.adminForm.set({ ...this.adminForm(), roles });
