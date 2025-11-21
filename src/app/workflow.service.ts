@@ -35,7 +35,7 @@ export class WorkflowService {
   login(phoneNumber: string, password: string): UserAccount {
     const user = this.users().find(
       (candidate) =>
-        candidate.phoneNumber === phoneNumber && candidate.password === password && candidate.status === 'Active'
+        candidate.phoneNumber === phoneNumber && candidate.password === password && candidate.isActive === true
     );
 
     if (!user) {
@@ -43,7 +43,7 @@ export class WorkflowService {
     }
 
     this.currentUser.set(user);
-    this.addNotification(user.role, `Signed in as ${user.name}.`, undefined);
+    this.addNotification(user.rolesNames, `Signed in as ${user.fullName}.`, undefined);
     return user;
   }
 
@@ -62,12 +62,12 @@ export class WorkflowService {
 
     const mappedUser: UserAccount = {
       id: user.id,
-      name: user.fullName || user.email || `Admin ${user.id}`,
+      fullName: user.fullName || user.email || `Admin ${user.id}`,
       phoneNumber: user.phoneNumber || '',
       email: user.email,
-      role: normalizedRole,
+      rolesNames: normalizedRole,
       permissions: user.permissions ?? [],
-      status: user.isActive === false ? 'Suspended' : 'Active',
+      isActive: user.isActive ??false,
       password: '',
       createdAt: user.joinedDate ? new Date(user.joinedDate) : new Date(),
     };
@@ -78,7 +78,7 @@ export class WorkflowService {
       this.users.set([...this.users(), mappedUser]);
     }
 
-    this.addNotification(mappedUser.role, `Signed in as ${mappedUser.name}.`, undefined);
+    this.addNotification(mappedUser.rolesNames, `Signed in as ${mappedUser.rolesNames}.`, undefined);
     this.loadUsersFromApi();
     this.loadNotifications();
     return mappedUser;
@@ -111,7 +111,8 @@ export class WorkflowService {
   }
 
   getTechnicians(): UserAccount[] {
-    return this.users().filter((user) => user.role === 'technician' && user.status === 'Active');
+    debugger
+    return this.users().filter((user) => user.rolesNames === 'technician' && user.isActive === true);
   }
 
   listUsers(): UserAccount[] {
@@ -120,16 +121,16 @@ export class WorkflowService {
 
   addUser(payload: Omit<UserAccount, 'id' | 'createdAt' | 'permissions'> & { permissions?: string[] }): UserAccount {
     const actor = this.currentUser();
-    if (!actor || actor.role !== 'manager') {
+    if (!actor || actor.rolesNames !== 'manager') {
       throw new Error('Only managers can create users.');
     }
 
     this.userId += 1;
     const permissions = payload.permissions?.length
       ? payload.permissions
-      : payload.role === 'manager'
+      : payload.rolesNames === 'manager'
         ? ['requests:review', 'users:manage', 'notifications:view']
-        : payload.role === 'technician'
+        : payload.rolesNames === 'technician'
           ? ['requests:complete', 'notifications:view']
           : ['requests:create', 'notifications:view'];
 
@@ -141,7 +142,7 @@ export class WorkflowService {
     };
 
     this.users.set([nextUser, ...this.users()]);
-    this.addNotification('manager', `${nextUser.name} was created.`, undefined);
+    this.addNotification('manager', `${nextUser.fullName} was created.`, undefined);
     return nextUser;
   }
 
@@ -245,19 +246,19 @@ export class WorkflowService {
 
     return {
       id: user.id,
-      name: user.fullName || user.email || `Admin ${user.id}`,
+      fullName: user.fullName || user.email || `Admin ${user.id}`,
       phoneNumber: user.phoneNumber || '',
       email: user.email,
-      role,
+      rolesNames: role,
       permissions,
-      status: user.isActive === false ? 'Suspended' : 'Active',
+      isActive: user.isActive,
       password: '',
       createdAt: user.joinedDate ? new Date(user.joinedDate) : new Date(),
     };
   }
 
   private mapNotification(item: NotificationDto): WorkflowNotification {
-    const audience = this.currentUser()?.role ?? 'manager';
+    const audience = this.currentUser()?.rolesNames ?? 'manager';
     return {
       id: item.id,
       audience,

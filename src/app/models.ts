@@ -1,15 +1,14 @@
 export type UserRole = 'employee' | 'manager' | 'technician';
 
-export type UserStatus = 'Active' | 'Suspended';
 
 export interface UserAccount {
   id: number;
-  name: string;
+  fullName: string;
   phoneNumber: string;
   email?: string;
-  role: UserRole;
+  rolesNames: UserRole;
   permissions: string[];
-  status: UserStatus;
+  isActive: boolean;
   password: string;
   createdAt: Date;
 }

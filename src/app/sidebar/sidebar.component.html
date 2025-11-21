@@ -4,10 +4,10 @@
     <button class="icon-button ghost mobile-only" type="button" aria-label="Close menu" (click)="closeMenu.emit()">✕</button>
   </div>
   <div class="profile-mini">
-    <p class="name">{{ current.name }}</p>
+    <p class="name">{{ current.fullName }}</p>
     <p class="muted">{{ current.email || current.phoneNumber }}</p>
-    <span class="badge" [class.badge-dark]="current.role === 'manager'" [class.badge-info]="current.role === 'technician'">
-      {{ current.role }}
+    <span class="badge" [class.badge-dark]="current.rolesNames === 'manager'" [class.badge-info]="current.rolesNames === 'technician'">
+      {{ current.rolesNames }}
     </span>
   </div>
   <nav class="nav">
@@ -15,13 +15,13 @@
     <button type="button" [class.active]="activeView === 'requests'" (click)="changeView('requests')">Requests</button>
     <button
       type="button"
-      *ngIf="current.role === 'employee'"
+      *ngIf="current.rolesNames === 'employee'"
       [class.active]="activeView === 'create-request'"
       (click)="changeView('create-request')"
     >
       Create request
     </button>
-    <button type="button" [class.active]="activeView === 'users'" (click)="changeView('users')" *ngIf="current.role === 'manager'">
+    <button type="button" [class.active]="activeView === 'users'" (click)="changeView('users')" *ngIf="current.rolesNames === 'manager'">
       Users
     </button>
     <button type="button" [class.active]="activeView === 'notifications'" (click)="changeView('notifications')">
