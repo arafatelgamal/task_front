@@ -32,62 +32,87 @@
   </div>
 
   <div class="request-list" *ngIf="requests().length; else emptyBoard">
-    <div class="card" *ngFor="let request of requests()">
-      <div class="card-head">
-        <div>
-          <p class="muted">#{{ request.id }} · {{ request.createdAt | date: 'short' }}</p>
-          <h3>{{ request.assetName }}</h3>
-          <p class="muted">Submitted by {{ request.employeeName }}</p>
+    <div class="card request-card" *ngFor="let request of requests()">
+      <div class="request-layout">
+        <div class="request-media" [class.placeholder]="!request.assetPhoto">
+          <img *ngIf="request.assetPhoto" [src]="request.assetPhoto" alt="Attachment" />
+          <span *ngIf="!request.assetPhoto">{{ request.assetName | slice: 0: 1 }}</span>
         </div>
-        <span [class]="statusChip(request.status)">{{ request.status }}</span>
-      </div>
-      <p>{{ request.description }}</p>
-      <div class="attachments" *ngIf="request.assetPhoto">
-        <img [src]="request.assetPhoto" alt="Attachment" />
-        <span class="muted">{{ request.assetPhotoName || 'Employee upload' }}</span>
-      </div>
 
-      <div class="manager-tools" *ngIf="canReview(user, request)">
-        <label>
-          Assign technician
-          <select [ngModel]="reviewTechnician()" (ngModelChange)="reviewTechnician.set($event)" name="technician">
-            <option [ngValue]="undefined">Choose</option>
-            <option *ngFor="let tech of technicians" [ngValue]="tech.id">{{ tech.fullName }}</option>
-          </select>
-        </label>
-        <label>
-          Decision note
-          <textarea rows="2" [ngModel]="reviewNote()" (ngModelChange)="reviewNote.set($event)" name="managerNote"></textarea>
-        </label>
-        <div class="action-row">
-          <button type="button" (click)="approveRequest(request)">Approve</button>
-          <button type="button" class="ghost" (click)="rejectRequest(request)">Reject</button>
-        </div>
-      </div>
+        <div class="request-body">
+          <div class="card-head">
+            <div class="title-block">
+              <p class="muted">#{{ request.id }} · {{ request.createdAt | date: 'short' }}</p>
+              <h3>{{ request.assetName }}</h3>
+              <div class="meta-row">
+                <span class="pill soft">{{ request.employeeName }}</span>
+                <span class="pill outline" *ngIf="request.managerNote">Mgr note</span>
+                <span class="pill outline" *ngIf="request.technicianNote">Tech note</span>
+              </div>
+            </div>
+            <span class="status-chip" [ngClass]="statusChip(request.status)">{{ request.status }}</span>
+          </div>
 
-      <div class="tech-tools" *ngIf="canComplete(user, request)">
-        <label>
-          Resolution note
-          <textarea
-            rows="2"
-            [ngModel]="technicianNotes()[request.id]?.note"
-            (ngModelChange)="updateTechNote(request.id, $event)"
-            [attr.name]="'techNote-' + request.id"
-          ></textarea>
-        </label>
-        <label>
-          Upload after-fix photo
-          <input type="file" accept="image/*" (change)="handleTechFile(request.id, $event)" />
-          <span class="muted" *ngIf="technicianNotes()[request.id]?.photoName">{{ technicianNotes()[request.id]?.photoName }}</span>
-        </label>
-        <button type="button" (click)="completeRequest(request)">Mark completed</button>
-      </div>
+          <p class="description">{{ request.description }}</p>
 
-      <div class="history" *ngIf="request.history?.length">
-        <p class="eyebrow">History</p>
-        <div class="history-entry" *ngFor="let item of request.history">
-          <span>{{ item.label }}</span>
-          <span class="muted">{{ item.at | date: 'short' }}</span>
+          <div class="attachments" *ngIf="request.assetPhotoName">
+            <span class="muted">{{ request.assetPhotoName || 'Employee upload' }}</span>
+          </div>
+
+          <div class="after-fix" *ngIf="request.technicianPhoto">
+            <p class="eyebrow">After fix</p>
+            <div class="after-fix-media">
+              <img [src]="request.technicianPhoto" alt="After fix photo" />
+              <div>
+                <p class="muted">{{ request.technicianPhotoName || 'Uploaded by technician' }}</p>
+                <small *ngIf="request.technicianNote">{{ request.technicianNote }}</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="manager-tools" *ngIf="canReview(user, request)">
+            <label>
+              Assign technician
+              <select [ngModel]="reviewTechnician()" (ngModelChange)="reviewTechnician.set($event)" name="technician">
+                <option [ngValue]="undefined">Choose</option>
+                <option *ngFor="let tech of technicians" [ngValue]="tech.id">{{ tech.fullName }}</option>
+              </select>
+            </label>
+            <label>
+              Decision note
+              <textarea rows="2" [ngModel]="reviewNote()" (ngModelChange)="reviewNote.set($event)" name="managerNote"></textarea>
+            </label>
+            <div class="action-row">
+              <button type="button" (click)="approveRequest(request)">Approve</button>
+              <button type="button" class="ghost" (click)="rejectRequest(request)">Reject</button>
+            </div>
+          </div>
+
+          <div class="tech-tools" *ngIf="canComplete(user, request)">
+            <label>
+              Resolution note
+              <textarea
+                rows="2"
+                [ngModel]="technicianNotes()[request.id]?.note"
+                (ngModelChange)="updateTechNote(request.id, $event)"
+                [attr.name]="'techNote-' + request.id"
+              ></textarea>
+            </label>
+            <label>
+              Upload after-fix photo
+              <input type="file" accept="image/*" (change)="handleTechFile(request.id, $event)" />
+              <span class="muted" *ngIf="technicianNotes()[request.id]?.photoName">{{ technicianNotes()[request.id]?.photoName }}</span>
+            </label>
+            <button type="button" (click)="completeRequest(request)">Mark completed</button>
+          </div>
+
+          <div class="history" *ngIf="request.history?.length">
+            <p class="eyebrow">History</p>
+            <div class="history-entry" *ngFor="let item of request.history">
+              <span>{{ item.label }}</span>
+              <span class="muted">{{ item.at | date: 'short' }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

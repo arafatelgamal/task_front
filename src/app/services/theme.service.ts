@@ -17,18 +17,19 @@ export class ThemeService {
   ];
 
   private readonly storageKey = 'app-theme';
-  private readonly theme = signal<ThemeOptionId>('midnight');
+  private readonly defaultTheme: ThemeOptionId = 'daylight';
+  private readonly theme = signal<ThemeOptionId>(this.defaultTheme);
 
   currentTheme = computed(() => this.theme());
 
   constructor() {
-    const saved = (localStorage.getItem(this.storageKey) as ThemeOptionId | null) ?? 'midnight';
-    const valid = this.themes.some((t) => t.id === saved) ? saved : 'midnight';
+    const saved = (localStorage.getItem(this.storageKey) as ThemeOptionId | null) ?? this.defaultTheme;
+    const valid = this.themes.some((t) => t.id === saved) ? saved : this.defaultTheme;
     this.applyTheme(valid);
   }
 
   setTheme(themeId: ThemeOptionId) {
-    const valid = this.themes.find((t) => t.id === themeId)?.id ?? 'midnight';
+    const valid = this.themes.find((t) => t.id === themeId)?.id ?? this.defaultTheme;
     this.applyTheme(valid);
   }
 
