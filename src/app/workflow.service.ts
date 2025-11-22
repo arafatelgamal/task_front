@@ -85,10 +85,17 @@ export class WorkflowService {
   }
 
   private normalizeRole(
-    user: { role?: string; userType?: string | number; rolesNames?: string[]; roles?: number[] } | UserDto,
+    user: { role?: string; userType?: string | number; rolesNames?: string | string[]; roles?: number[] } | UserDto,
   ): UserRole {
-    const roleNames = (user as { rolesNames?: string[] }).rolesNames || [];
-    const loweredRoles = roleNames.map((name) => name.trim().toLowerCase());
+    const rawRoles = (user as { rolesNames?: string | string[] }).rolesNames;
+    const normalizedRoles = Array.isArray(rawRoles)
+      ? rawRoles
+      : rawRoles
+          ?.split(',')
+          .map((role) => role.trim())
+          .filter(Boolean);
+
+    const loweredRoles = (normalizedRoles ?? []).map((name) => name.trim().toLowerCase());
     if (loweredRoles.some((name) => name.includes('tech'))) return 'technician';
     if (loweredRoles.some((name) => name.includes('manager'))) return 'manager';
     if (loweredRoles.some((name) => name.includes('employee'))) return 'employee';
