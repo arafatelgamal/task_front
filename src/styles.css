@@ -1,54 +1,60 @@
 /* Global theme tokens */
 :root {
-  --color-page-bg: #0b1320;
-  --color-layout: #f7f8fb;
-  --color-surface: #ffffff;
-  --color-surface-strong: #0f172a;
-  --color-surface-strong-alt: #111827;
-  --color-border: #e5e7eb;
-  --color-strong-border: #1f2937;
-  --color-text: #0b1320;
-  --color-text-contrast: #e5e7eb;
-  --color-muted: #6b7280;
-  --color-eyebrow: #5f6b7a;
+  --color-page-bg: radial-gradient(circle at 20% 20%, #142647 0, transparent 26%),
+    radial-gradient(circle at 90% 10%, #1f3b74 0, transparent 20%), #05080f;
+  --color-layout: rgba(255, 255, 255, 0.04);
+  --color-surface: rgba(255, 255, 255, 0.08);
+  --color-surface-strong: rgba(10, 18, 33, 0.8);
+  --color-surface-strong-alt: rgba(10, 18, 33, 0.95);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-strong-border: rgba(255, 255, 255, 0.16);
+  --color-text: #e5edff;
+  --color-text-contrast: #0b1220;
+  --color-muted: #99a4c2;
+  --color-eyebrow: #8bb7ff;
 
-  --primary-start: #2563eb;
-  --primary-end: #1d4ed8;
+  --primary-start: #7c3aed;
+  --primary-end: #22d3ee;
 
-  --ghost-text: #e5e7eb;
-  --ghost-border: #1f2937;
+  --ghost-text: #dce6ff;
+  --ghost-border: rgba(255, 255, 255, 0.18);
 
-  --input-bg: #ffffff;
-  --input-border: #d1d5db;
+  --input-bg: rgba(255, 255, 255, 0.08);
+  --input-border: rgba(255, 255, 255, 0.14);
 
-  --badge-bg: #111827;
-  --panel-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+  --badge-bg: #0ea5e9;
+  --panel-shadow: 0 30px 120px rgba(2, 6, 23, 0.55), 0 10px 40px rgba(124, 58, 237, 0.16);
 
-  --login-hero-bg: radial-gradient(circle at 18% 20%, rgba(96, 165, 250, 0.12), transparent 25%),
-    radial-gradient(circle at 82% 12%, rgba(147, 51, 234, 0.14), transparent 22%),
-    linear-gradient(145deg, #0b1220, #0a0f1a 55%, #0b1324);
-  --login-card-bg: #0f172a;
-  --login-card-border: #1f2937;
-  --login-form-bg: #0b1220;
-  --login-form-border: #1f2937;
+  --login-hero-bg: radial-gradient(circle at 18% 20%, rgba(124, 58, 237, 0.14), transparent 25%),
+    radial-gradient(circle at 82% 12%, rgba(34, 211, 238, 0.16), transparent 22%),
+    linear-gradient(145deg, #05080f, #091223 55%, #0a1630);
+  --login-card-bg: rgba(255, 255, 255, 0.08);
+  --login-card-border: rgba(255, 255, 255, 0.12);
+  --login-form-bg: rgba(3, 7, 18, 0.8);
+  --login-form-border: rgba(255, 255, 255, 0.1);
   --login-input-text: #f8fafc;
   --login-muted-text: #cbd5e1;
   --login-prefix: #94a3b8;
   --login-button-start: #22d3ee;
-  --login-button-end: #6366f1;
-  --login-button-text: #0b1220;
-  --login-shadow: 0 30px 120px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  --login-button-end: #7c3aed;
+  --login-button-text: #051120;
+  --login-shadow: 0 40px 120px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
 }
 
 body {
   background: var(--color-page-bg);
   color: var(--color-text);
+  margin: 0;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
 }
 
 body[data-theme='daylight'] {
-  --color-page-bg: #eef2ff;
-  --color-layout: #f9fafb;
-  --color-surface: #ffffff;
+  --color-page-bg: radial-gradient(circle at 16% 18%, rgba(14, 165, 233, 0.12), transparent 28%),
+    radial-gradient(circle at 84% 14%, rgba(56, 189, 248, 0.18), transparent 26%),
+    linear-gradient(135deg, #e0f2fe, #f8fafc 55%, #dbeafe);
+  --color-layout: rgba(255, 255, 255, 0.4);
+  --color-surface: rgba(255, 255, 255, 0.85);
   --color-surface-strong: #0ea5e9;
   --color-surface-strong-alt: #0284c7;
   --color-border: #e2e8f0;
@@ -70,10 +76,10 @@ body[data-theme='daylight'] {
   --badge-bg: #0f172a;
   --panel-shadow: 0 14px 48px rgba(8, 47, 73, 0.12);
 
-  --login-hero-bg: radial-gradient(circle at 16% 18%, rgba(14, 165, 233, 0.12), transparent 28%),
-    radial-gradient(circle at 84% 14%, rgba(56, 189, 248, 0.18), transparent 26%),
+  --login-hero-bg: radial-gradient(circle at 14% 14%, rgba(14, 165, 233, 0.16), transparent 26%),
+    radial-gradient(circle at 90% 18%, rgba(56, 189, 248, 0.18), transparent 22%),
     linear-gradient(135deg, #e0f2fe, #f8fafc 55%, #dbeafe);
-  --login-card-bg: #ffffff;
+  --login-card-bg: rgba(255, 255, 255, 0.95);
   --login-card-border: #e2e8f0;
   --login-form-bg: #f8fafc;
   --login-form-border: #e2e8f0;
@@ -87,9 +93,11 @@ body[data-theme='daylight'] {
 }
 
 body[data-theme='forest'] {
-  --color-page-bg: #0b1612;
-  --color-layout: #0f2018;
-  --color-surface: #10271d;
+  --color-page-bg: radial-gradient(circle at 20% 18%, rgba(52, 211, 153, 0.12), transparent 24%),
+    radial-gradient(circle at 78% 10%, rgba(34, 197, 94, 0.16), transparent 24%),
+    linear-gradient(140deg, #0b1612, #0e2118 60%, #0a1b14);
+  --color-layout: rgba(255, 255, 255, 0.06);
+  --color-surface: rgba(255, 255, 255, 0.08);
   --color-surface-strong: #0f172a;
   --color-surface-strong-alt: #0b3b2e;
   --color-border: #1f362a;
@@ -105,7 +113,7 @@ body[data-theme='forest'] {
   --ghost-text: #e2f3eb;
   --ghost-border: #1f362a;
 
-  --input-bg: #0f2018;
+  --input-bg: rgba(255, 255, 255, 0.04);
   --input-border: #14532d;
 
   --badge-bg: #052e16;
@@ -114,7 +122,7 @@ body[data-theme='forest'] {
   --login-hero-bg: radial-gradient(circle at 22% 20%, rgba(52, 211, 153, 0.12), transparent 24%),
     radial-gradient(circle at 82% 12%, rgba(74, 222, 128, 0.12), transparent 20%),
     linear-gradient(140deg, #0b1612, #0e2118 60%, #0a1b14);
-  --login-card-bg: #0f2018;
+  --login-card-bg: rgba(255, 255, 255, 0.08);
   --login-card-border: #14532d;
   --login-form-bg: #0c1a14;
   --login-form-border: #14532d;

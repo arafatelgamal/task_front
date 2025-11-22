@@ -18,6 +18,90 @@
   gap: 12px;
 }
 
+.request-card {
+  padding: 0;
+}
+
+.request-layout {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.request-media {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-start) 25%, transparent), var(--color-surface));
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  border-radius: 16px 0 0 16px;
+  overflow: hidden;
+}
+
+.request-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.request-media.placeholder {
+  color: var(--color-text);
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: 0.02em;
+}
+
+.request-body {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.request-body .card-head {
+  align-items: flex-start;
+}
+
+.title-block h3 {
+  margin: 4px 0;
+}
+
+.meta-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status-chip {
+  white-space: nowrap;
+}
+
+.description {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.after-fix {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.after-fix-media {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.after-fix-media img {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+}
+
 .filter-row {
   display: flex;
   gap: 12px;
@@ -28,13 +112,29 @@
 .tech-tools {
   margin-top: 12px;
   padding: 12px;
-  border: 1px solid #1f1f1f;
-  border-radius: 8px;
-  background: #b6b6b6;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .card-head {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+}
+
+@media (max-width: 820px) {
+  .request-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .request-media {
+    border-radius: 16px 16px 0 0;
+    border-right: none;
+    min-height: 200px;
+  }
+
+  .after-fix-media {
+    grid-template-columns: 1fr;
+  }
 }
