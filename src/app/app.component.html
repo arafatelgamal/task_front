@@ -21,8 +21,9 @@
     <div class="scrim" *ngIf="mobileNavOpen()" (click)="closeMobileNav()"></div>
 
     <main>
-      <header class="topbar">
-        <div class="topbar-left">
+      <div class="aurora"></div>
+      <header class="topbar hero">
+        <div class="hero-intro">
           <button
             type="button"
             class="icon-button mobile-only"
@@ -35,66 +36,82 @@
           <div>
             <p class="eyebrow">Logged in as {{ user.rolesNames }}</p>
             <h1>Facilities workflow console</h1>
+            <p class="lede">Track every asset request, decision and notification in one fluid, animated surface.</p>
+            <div class="pill-row">
+              <span class="pill vibrant">Realtime board</span>
+              <span class="pill outline">Role-focus: {{ user.rolesNames }}</span>
+              <span class="pill outline">Smart filters active</span>
+            </div>
           </div>
         </div>
-        <div class="topbar-actions">
+        <div class="hero-actions">
           <label class="theme-switcher">
             <span>Theme</span>
             <select [ngModel]="currentTheme()" (ngModelChange)="setTheme($event)">
               <option *ngFor="let theme of themes" [ngValue]="theme.id">{{ theme.label }}</option>
             </select>
           </label>
-          <div class="stat-row">
-            <div class="stat-card">
+          <div class="stat-row deluxe">
+            <div class="stat-card gradient">
               <p class="muted">Total</p>
-              <strong>{{ dashboardStats().total }}</strong>
+              <div class="stat-value">{{ dashboardStats().total }}</div>
+              <small>All visible requests</small>
             </div>
             <div class="stat-card warn">
               <p class="muted">Pending</p>
-              <strong>{{ dashboardStats().pending }}</strong>
+              <div class="stat-value">{{ dashboardStats().pending }}</div>
+              <small>Awaiting review</small>
             </div>
             <div class="stat-card info">
               <p class="muted">In progress</p>
-              <strong>{{ dashboardStats().inProgress }}</strong>
+              <div class="stat-value">{{ dashboardStats().inProgress }}</div>
+              <small>With technicians</small>
             </div>
             <div class="stat-card success">
               <p class="muted">Completed</p>
-              <strong>{{ dashboardStats().completed }}</strong>
+              <div class="stat-value">{{ dashboardStats().completed }}</div>
+              <small>Signed off</small>
             </div>
           </div>
         </div>
       </header>
 
-      <section *ngIf="activeView() === 'dashboard'" class="panel-grid">
-        <article class="panel">
+      <section *ngIf="activeView() === 'dashboard'" class="panel-grid dashboard-grid">
+        <article class="panel gradient-panel">
           <div class="panel-header">
             <div>
               <p class="eyebrow">Quick actions</p>
-              <h2>Start a flow</h2>
+              <h2>Launch something new</h2>
             </div>
+            <span class="spark">⚡</span>
           </div>
-          <div class="action-grid">
+          <p class="muted">Jump straight into the most common tasks for your role.</p>
+          <div class="action-grid elevated">
             <button *ngIf="user.rolesNames === 'employee'" type="button" (click)="handleNewRequest()">Add asset request</button>
             <button *ngIf="user.rolesNames === 'manager'" type="button" (click)="activeView.set('users')">Create user</button>
             <button type="button" (click)="activeView.set('notifications')">View notifications</button>
           </div>
         </article>
 
-        <article class="panel">
+        <article class="panel stacked">
           <div class="panel-header">
             <div>
               <p class="eyebrow">Recent requests</p>
               <h2>Workboard</h2>
             </div>
+            <span class="badge soft">Live</span>
           </div>
-          <div class="list compact" *ngIf="recentRequests().length; else emptyBoard">
-            <div class="list-item" *ngFor="let request of recentRequests() | slice:0:4">
-              <div>
-                <p class="muted">#{{ request.id }} · {{ request.createdAt | date: 'short' }}</p>
-                <strong>{{ request.assetName }}</strong>
+          <div class="timeline" *ngIf="recentRequests().length; else emptyBoard">
+            <div class="timeline-item" *ngFor="let request of recentRequests() | slice:0:4">
+              <div class="dot"></div>
+              <div class="timeline-body">
+                <div class="timeline-top">
+                  <strong>#{{ request.id }} · {{ request.assetName }}</strong>
+                  <span [class]="statusChip(request.status)">{{ request.status }}</span>
+                </div>
                 <p class="muted">{{ request.description }}</p>
+                <small>{{ request.createdAt | date: 'medium' }}</small>
               </div>
-              <span [class]="statusChip(request.status)">{{ request.status }}</span>
             </div>
           </div>
           <ng-template #emptyBoard>
@@ -102,20 +119,24 @@
           </ng-template>
         </article>
 
-        <article class="panel">
+        <article class="panel stacked">
           <div class="panel-header">
             <div>
               <p class="eyebrow">Timeline</p>
               <h2>Latest notifications</h2>
             </div>
+            <span class="badge">Stream</span>
           </div>
-          <div class="list compact" *ngIf="myNotifications().length; else noNotes">
-            <div class="list-item" *ngFor="let note of myNotifications() | slice:0:5">
-              <div>
-                <strong>{{ note.message }}</strong>
-                <p class="muted">{{ note.createdAt | date: 'short' }}</p>
+          <div class="timeline" *ngIf="myNotifications().length; else noNotes">
+            <div class="timeline-item" *ngFor="let note of myNotifications() | slice:0:5">
+              <div class="dot alt"></div>
+              <div class="timeline-body">
+                <div class="timeline-top">
+                  <strong>{{ note.message }}</strong>
+                  <span class="badge ghost">{{ note.relatedRequestId ? ('#' + note.relatedRequestId) : '—' }}</span>
+                </div>
+                <small>{{ note.createdAt | date: 'short' }}</small>
               </div>
-              <span class="badge">{{ note.relatedRequestId ? ('#' + note.relatedRequestId) : '—' }}</span>
             </div>
           </div>
           <ng-template #noNotes>
@@ -144,20 +165,24 @@
 
       <app-user-management *ngIf="activeView() === 'users' && user.rolesNames === 'manager'" />
 
-      <section *ngIf="activeView() === 'notifications'" class="panel">
+      <section *ngIf="activeView() === 'notifications'" class="panel stacked">
         <div class="panel-header">
           <div>
             <p class="eyebrow">Live feed</p>
             <h2>Notifications</h2>
           </div>
+          <span class="badge">Realtime</span>
         </div>
-        <div class="list" *ngIf="myNotifications().length; else noNotifications">
-          <div class="list-item" *ngFor="let note of myNotifications()">
-            <div>
-              <strong>{{ note.message }}</strong>
-              <p class="muted">{{ note.createdAt | date: 'short' }}</p>
+        <div class="timeline" *ngIf="myNotifications().length; else noNotifications">
+          <div class="timeline-item" *ngFor="let note of myNotifications()">
+            <div class="dot alt"></div>
+            <div class="timeline-body">
+              <div class="timeline-top">
+                <strong>{{ note.message }}</strong>
+                <span class="badge ghost">{{ note.relatedRequestId ? ('#' + note.relatedRequestId) : '—' }}</span>
+              </div>
+              <small>{{ note.createdAt | date: 'short' }}</small>
             </div>
-            <span class="badge">{{ note.relatedRequestId ? ('#' + note.relatedRequestId) : '—' }}</span>
           </div>
         </div>
         <ng-template #noNotifications>
