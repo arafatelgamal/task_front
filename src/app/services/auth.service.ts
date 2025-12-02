@@ -27,12 +27,32 @@ export class AuthService {
     this.adminUser.set(null);
     localStorage.removeItem('task-token');
     localStorage.removeItem('task-refresh');
+    localStorage.removeItem('task-user');
   }
 
   private persistSession(payload: LoginAdminResponse) {
     this.adminUser.set(payload.user);
     localStorage.setItem('task-token', payload.token);
     localStorage.setItem('task-refresh', payload.refreshToken);
+    localStorage.setItem('task-user', JSON.stringify(payload.user));
+  }
+
+  restoreSession(): AdminUserDto | null {
+    const token = localStorage.getItem('task-token');
+    const user = localStorage.getItem('task-user');
+
+    if (!token || !user) {
+      return null;
+    }
+
+    try {
+      const parsedUser = JSON.parse(user) as AdminUserDto;
+      this.adminUser.set(parsedUser);
+      return parsedUser;
+    } catch (err) {
+      this.logout();
+      return null;
+    }
   }
 
   private unwrap<T>(response: ApiResponse<T> | T): T {

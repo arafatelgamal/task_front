@@ -15,9 +15,11 @@ export class UserManagementComponent implements OnInit {
   filters = signal<GetUsersWithPaginationQuery>({ pageNumber: 1, pageSize: 10, searchTerm: '', userType: 'AdminUser' });
   users = signal<UserDto[]>([]);
   loading = signal(false);
+  saving = signal(false);
   error = signal('');
   success = signal('');
   roles = signal<RoleItemDto[]>([]);
+  showCreateModal = signal(false);
 
   adminForm = signal<AddAdminUserCommand>({
     email: '',
@@ -78,21 +80,42 @@ export class UserManagementComponent implements OnInit {
   submitAdmin() {
     this.error.set('');
     this.success.set('');
+    this.saving.set(true);
     const payload = this.adminForm();
 
     this.userService.addAdmin(payload).subscribe({
       next: (response) => {
         this.success.set(`User ${payload.fullName || payload.email} created (id: ${response.userId}).`);
         this.adminForm.set({ email: '', fullName: '', phoneNumber: '', nationalId: '', password: 'Temp@12345', roles: [] });
+        this.showCreateModal.set(false);
+        this.saving.set(false);
         this.loadUsers();
       },
       error: (err) => {
         this.error.set(err?.error?.message || 'Unable to add admin user.');
+        this.saving.set(false);
       },
     });
   }
 
+  openCreateDialog() {
+    this.error.set('');
+    this.saving.set(false);
+    this.showCreateModal.set(true);
+  }
+
+  closeCreateDialog() {
+    this.saving.set(false);
+    this.error.set('');
+    this.showCreateModal.set(false);
+  }
+
   toggleUser(user: UserDto) {
+    if (this.isSuperAdmin(user)) {
+      this.error.set('SuperAdmin accounts cannot be disabled.');
+      return;
+    }
+
     this.userService.toggleUserStatus({ userId: user.id }).subscribe({
       next: () => {
         this.success.set(`User ${user.fullName || user.email} is now ${user.isActive ? 'inactive' : 'active'}.`);
@@ -103,6 +126,11 @@ export class UserManagementComponent implements OnInit {
   }
 
   deleteUser(user: UserDto) {
+    if (this.isSuperAdmin(user)) {
+      this.error.set('SuperAdmin accounts cannot be deleted.');
+      return;
+    }
+
     this.userService.deleteUser(user.id).subscribe({
       next: () => {
         this.success.set(`User ${user.fullName || user.email} deleted.`);
@@ -118,6 +146,10 @@ export class UserManagementComponent implements OnInit {
 
   currentStatus(user: UserDto) {
     return user.isActive ? 'Active' : 'Suspended';
+  }
+
+  isSuperAdmin(user: UserDto) {
+    return (user.rolesNames || []).some((role) => role.toLowerCase() === 'superadmin');
   }
 
   userTypes(): UserTypeEnum[] {
